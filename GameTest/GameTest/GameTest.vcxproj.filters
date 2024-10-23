@@ -76,5 +76,11 @@
     <Text Include="..\Assets\Base.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="..\Assets\Level1hazard.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="..\Assets\testhazard.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

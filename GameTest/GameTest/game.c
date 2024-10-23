@@ -46,15 +46,15 @@ void Game_Init(void)
 	speed = 400;
 
 	// initialize movestate
-	movestate = 0;
+	movestate = OnPlat;
 
 	// initialize switchtime
 	switchtime = 1;
 
 	// initialize player
 	// size
-	player.width = 30;
-	player.height = 30;
+	player.width = 20;
+	player.height = 20;
 	// position
 	player.x = 700;
 	player.y = 200;
@@ -71,14 +71,19 @@ void Game_Init(void)
 #pragma region Initialize Platform
 
 	FILE* file = fopen("Assets/Base.txt", "r");
+	// pindex - platform index
+	// pcindex - platform coordinate index
 	int pindex = 0; int pcindex = 0;
-	int test = 0;
 	while (pindex < numplats) {
+		// coordinate ints to read
 		int x, y;
+		// scan how many coordinates
 		fscanf_s(file, "%d", &Platform[pindex].numcoords);
-
+		// for how many coordinates in platform
 		while (pcindex < Platform[pindex].numcoords) {
+			// scan coordinates
 			fscanf_s(file, "%d %d", &x, &y);
+			// assign coordinates to array
 			platform_coordinates(pindex, pcindex, x, y);
 			pcindex++;
 		}
@@ -93,10 +98,6 @@ void Game_Init(void)
 	}
 
 #pragma endregion
-
-	//healthbar position
-	hpx1 = width / 10; hpx2 = 9 * width / 10;
-	hpy1 = 50; hpy2 = 100;
 
 	//HAZARDS
 	/*-----------------------------------------------------------------------------------------------------------*/
@@ -119,9 +120,6 @@ void Game_Init(void)
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 }
 
-
-
-
 void Game_Update(void)
 {
 	// background
@@ -132,44 +130,35 @@ void Game_Update(void)
 	// MOVEMENT 
 	/*---------------------------------------------------------------------------------------------------*/
 #pragma region Movement
-	// change movestate, teleport up/down
-	// 0 is platformer, 1 is inplatform, 2 is 0>1, 3 is 1>0
-
-	if (CP_Input_KeyTriggered(KEY_E) && (movestate == 1 || movestate == 0)) {
-		/*if (movestate == 0 && player.onplatform == 1 && player.withinx == 1) {
-			movestate=2;
-			switchtime = 0;
-		}
-		else if (movestate == 1 && player.y > 200 && player.leaveplatform == 1) {
-			movestate = 3;
-			switchtime = 0;
-		}*/
+	// change movestate
+	// OnPlat - on platform
+	// InPlat - inside platform
+	// EnterPlat - from OnPlat to InPlat
+	// ExitPlat - from InPlat to OnPlat
+	if (CP_Input_KeyTriggered(KEY_E) && (movestate == OnPlat || movestate == InPlat)) {
 		movestate = start_transition(&player, movestate);
-		if (movestate == 2 || movestate == 3) {
+		if (movestate == EnterPlat || movestate == ExitPlat) {
 			switchtime = 0;
 		}
 	}
-
-
-	//movestate = end_transition(&player, dt, switchtime, movestate);
+	// Transition animation
 	if (switchtime < 1) {
-		if ((movestate == 2 && switchtime < 0.5) || (movestate == 3 && switchtime >= 0.5)) {
-			player.movey += 800 / 60;
+		if ((movestate == EnterPlat && switchtime < 0.5f) || (movestate == ExitPlat && switchtime >= 0.5f)) {
+			player.movey += 800.0f / 60.0f;
 		}
-		if ((movestate == 3 && switchtime < 0.5) || (movestate == 2 && switchtime >=0.5)) {
-			player.movey -= 800 / 60;
+		if ((movestate == ExitPlat && switchtime < 0.5f) || (movestate == EnterPlat && switchtime >= 0.5f)) {
+			player.movey -= 800.0f / 60.0f;
 		}
-		switchtime += 1.0f/30.0f;
+		switchtime += 1.0f / 30.0f;
 	}
 	if (switchtime >= 1) {
-		if (movestate == 2) {
-			movestate = 1;
+		if (movestate == EnterPlat) {
+			movestate = InPlat;
 		}
-		if (movestate == 3) {
-			movestate = 0;
+		if (movestate == ExitPlat) {
+			movestate = OnPlat;
 		}
 	}
-	
 
 	// different movement logics
 	movement(&player, movestate, speed);
@@ -183,7 +172,7 @@ void Game_Update(void)
 	player.withinx = 0;
 	player.leaveplatform = 0;
 	// collision against platforms
-	if (movestate == 1 || movestate == 0) {
+	if (movestate == InPlat || movestate == OnPlat) {
 		for (int plat_index = 0; plat_index < numplats; plat_index++) {
 			CollPlatforms(plat_index, Platform[plat_index].numcoords, Platform[plat_index], &player, player);
 		}
@@ -194,11 +183,12 @@ void Game_Update(void)
 		player.movey = 0;
 	}
 	player.y = CP_Math_ClampFloat(player.y, 0, height - player.height);
-	// reset with R or touch ground in platform movestate
-	if (CP_Input_KeyDown(KEY_R) || ((player.y >= height - player.height) && movestate == 0)) {
+
+	// reset with R or touch ground while movestate OnPlat
+	if (CP_Input_KeyDown(KEY_R) || ((player.y >= height - player.height) && movestate == OnPlat)) {
 		player.x = 150;
 		player.y = 200;
-		movestate = 0;
+		movestate = OnPlat;
 		player.movey = 0;
 	}
 
@@ -223,20 +213,20 @@ void Game_Update(void)
 		DrawPlatform(i);
 	}
 
+	// HAZARD DRAWING
+	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+	CP_Graphics_DrawTriangle(traps[0].x[0], traps[0].y[0], traps[0].x[1], traps[0].y[1], traps[0].x[2], traps[0].y[2]);
+
 	// Player
 	// CP_Settings_Fill(player.color);
 	// CP_Graphics_DrawRect(player.x - 10, player.y - 10, player.width + 20, player.height + 20);
-	CP_Image_Draw(player_sprite, player.x -10, player.y -10, player.width + 20, player.height + 20, 255);
+	CP_Image_Draw(player_sprite, player.x -15, player.y -15, player.width + 30, player.height + 30, 255);
 
 #pragma endregion
 
 	// Back to main menu
 	if (CP_Input_KeyDown(KEY_Q)) { CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit); };
 
-
-	//HAZARD DRAWING
-	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-	CP_Graphics_DrawTriangle(traps[0].x[0], traps[0].y[0], traps[0].x[1], traps[0].y[1], traps[0].x[2], traps[0].y[2]);
 }
 
 void Game_Exit(void)

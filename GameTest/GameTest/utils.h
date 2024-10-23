@@ -16,6 +16,7 @@
 
 // check if position is within a rectangle
 int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y);
+int IsAreaCornerClicked(float area_corner_x, float area_corner_y, float area_width, float area_height, float click_x, float click_y);
 
 // check if position is within a circle
 int IsCircleClicked(float circle_center_x, float circle_center_y, float diameter, float click_x, float click_y);
