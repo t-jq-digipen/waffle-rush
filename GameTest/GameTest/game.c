@@ -13,6 +13,7 @@
 
 #include "game.h"
 
+
 CP_Color bg, red, green, hpcol; //colors
 float speed; //speed
 float width, height; //window width/height

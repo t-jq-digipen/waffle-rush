@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="effects.c" />
     <ClCompile Include="game.c" />
     <ClCompile Include="hazard.c" />
     <ClCompile Include="Level1.c" />
@@ -21,6 +22,7 @@
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="effects.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="hazard.h" />
     <ClInclude Include="Level1.h" />

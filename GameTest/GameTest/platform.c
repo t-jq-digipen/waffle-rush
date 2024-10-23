@@ -69,6 +69,7 @@ void movement(Player* p, int movestate, float speed) {
 		if (CP_Input_KeyTriggered(KEY_SPACE) && p->onplatform == 1) { p->movey = -speed; } // jump!
 		if (CP_Input_KeyDown(KEY_A)) { p->movex = -speed; };
 		if (CP_Input_KeyDown(KEY_D)) { p->movex = speed; };
+		
 	}
 	if (movestate == 1) { // top down/inside platform
 		p->movex = 0; p->movey = 0;
@@ -76,6 +77,7 @@ void movement(Player* p, int movestate, float speed) {
 		if (CP_Input_KeyDown(KEY_A)) { p->movex = -speed; };
 		if (CP_Input_KeyDown(KEY_S)) { p->movey = speed; };
 		if (CP_Input_KeyDown(KEY_D)) { p->movex = speed; };
+		
 	}
 }
 

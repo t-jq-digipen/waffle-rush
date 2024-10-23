@@ -39,6 +39,9 @@
     <ClCompile Include="hazard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="effects.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainmenu.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hazard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
