@@ -1,29 +1,14 @@
 //---------------------------------------------------------
-// file:	game.c
-// author:	TAN JUN QUAN
-// email:	t.junquan@digipen.edu
+// file:	Level1.c
+// author:	AVID WAFFLE ENJOYERS
+// email:	-
 //
-// brief:   When the player goes into red or green circles,
-//			they will lose and gain health respectively
-//			Render health bar on top, with segmented health
-//			bar every 10%
+// brief:   Level 1 stage
 //
 // Copyright © 2020 DigiPen, All rights reserved.
 //---------------------------------------------------------
 
 #include "Level1.h"
-#include "hazard.h"
-
-CP_Color bg, red, green, hpcol; //colors
-float speed; //speed
-float width, height; //window width/height
-float hpx1, hpx2, hpy1, hpy2; //positions of hp bar
-CP_Font text;
-CP_Image player_sprite;
-hazard traps[100];
-int numberoftraps;
-
-int numplats1 = 4;
 
 void L1_Init(void)
 {
@@ -39,62 +24,85 @@ void L1_Init(void)
 
 	// initialize colors
 	bg = CP_Color_Create(100, 100, 100, 255); //background
+	black = CP_Color_Create(0, 0, 0, 255); //black
 	red = CP_Color_Create(200, 50, 50, 255); //red
 	green = CP_Color_Create(50, 200, 50, 255); //green
-	hpcol = CP_Color_Create(255, 150, 150, 255); //hp colour
+	plat = CP_Color_Create(255, 150, 150, 255); //platform colour
+	stamina = CP_Color_Create(255, 255, 40, 255); //stamina colour
 
 	// initialize base speed
-	speed = 400;
+	speed = 600;
 
 	// initialize movestate
-	movestate = 0;
+	movestate = OnPlat;
 
-	// initialize switchtime
-	switchtime = 1;
+	// initialize deaths
+	deaths = 0;
+
+	// initialize goal
+	goalx = 1520;
+	goaly = 250;
 
 	// initialize player
 	// size
-	player.width = 30;
-	player.height = 30;
+	player.width = 20;
+	player.height = 20;
 	// position
-	player.x = 150;
-	player.y = 200;
+	player.x = spawnx = 150;
+	player.y = spawny = 200;
 	// movement
 	player.movex = 0;
 	player.movey = 0;
+	// transit variables
+	player.transition_time = 1.0f;
 	// health
-	player.hp = 100;
+	player.stamina = 100.0f;
 	// color
 	player.color = CP_Color_Create(150, 150, 200, 255);
 
 	// PLATFORMS INITIALIZATION
 	/*---------------------------------------------------------------------------------------------------*/
 #pragma region Initialize Platform
-
 	FILE* file = fopen("Assets/Level1.txt", "r");
-	// pindex - platform index
-	// pcindex - platform coordinate index
-	int pindex = 0; int pcindex = 0;
-	while (pindex < numplats1) {
+
+	if (file == NULL) {
+		printf("Failed to open platform file! Check if file exists\n");
+		CP_Engine_Terminate;
+	}
+	// read how many platforms in level
+	fscanf_s(file, "%d", &numplats);
+
+	// plat_index - platform index
+	// plat_coord_index - platform coordinate index
+	int plat_index = 0; int plat_coord_index = 0;
+	while (plat_index < numplats) {
 		// coordinate ints to read
-		int x, y;
 		// scan how many coordinates
-		fscanf_s(file, "%d", &Platform[pindex].numcoords);
+		fscanf_s(file, "%d", &Platform[plat_index].numcoords);
 		// for how many coordinates in platform
-		while (pcindex < Platform[pindex].numcoords) {
+		while (plat_coord_index < Platform[plat_index].numcoords) {
+			int x, y;
 			// scan coordinates
 			fscanf_s(file, "%d %d", &x, &y);
 			// assign coordinates to array
-			platform_coordinates(pindex, pcindex, x, y);
-			pcindex++;
+			platform_coordinates(plat_index, plat_coord_index, x, y);
+			plat_coord_index++;
 		}
-		pcindex = 0;
-		pindex++;
+		plat_coord_index = 0;
+		fscanf_s(file, "%d", &Platform[plat_index].numblocks);
+		while (plat_coord_index < Platform[plat_index].numblocks) {
+			int x1, y1, x2, y2;
+			fscanf_s(file, "%d %d %d %d", &x1, &y1, &x2, &y2);
+			platform_onblocks(plat_index, plat_coord_index, x1, y1, x2, y2);
+			plat_coord_index++;
+		}
+		plat_coord_index = 0;
+		plat_index++;
 	}
 	fclose(file);
 
 	// initialize all platform hitboxes
-	for (int plat_index = 0; plat_index < numplats1; plat_index++) {
+	for (int plat_index = 0; plat_index < numplats; plat_index++) {
 		hitbox(plat_index, Platform[plat_index].numcoords, &Platform[plat_index]);
 	}
 
@@ -107,8 +115,7 @@ void L1_Init(void)
 	fscanf_s(file2, "%d", &numberoftraps);
 
 	for (int i = 0; i < numberoftraps; ++i) {
-		int j=0;
-		for (; j < 3; ++j) {
+		for (int j = 0; j < 3; ++j) {
 			fscanf_s(file2, "%d %d", &traps[i].x[j], &traps[i].y[j]);
 		}
 		fscanf_s(file2, "%d", &traps[i].type);
@@ -121,135 +128,113 @@ void L1_Init(void)
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 }
 
-
 void L1_Update(void)
 {
 	// background
 	CP_Graphics_ClearBackground(bg);
+
 	// getdt
 	float dt = CP_System_GetDt();
 
 	// MOVEMENT 
 	/*---------------------------------------------------------------------------------------------------*/
 #pragma region Movement
-		// change movestate, teleport up/down
-	// 0 is platformer, 1 is inplatform, 2 is 0>1, 3 is 1>0
-
-	if (CP_Input_KeyTriggered(KEY_E)&&(movestate==1 || movestate==0)) {
-		/*if (movestate == 0 && player.onplatform == 1 && player.withinx == 1) {
-			movestate=2;
-			switchtime = 0;
-		}
-		else if (movestate == 1 && player.y > 200 && player.leaveplatform == 1) {
-			movestate = 3;
-			switchtime = 0;
-		}*/
+	// change movestate
+	// OnPlat - on platform
+	// InPlat - inside platform
+	// EnterPlat - from OnPlat to InPlat
+	// ExitPlat - from InPlat to OnPlat
+	if (CP_Input_KeyTriggered(KEY_E) && (movestate == OnPlat || movestate == InPlat)) {
 		movestate = start_transition(&player, movestate);
-		if (movestate == 2 || movestate == 3) {
-			switchtime = 0;
-		}
 	}
+	// Transiting movestate
+	movestate = transition(&player, movestate, dt);
 
-
-	//movestate = end_transition(&player, dt, switchtime, movestate);
-	if (switchtime < 1) {
-		if ((movestate == 2 && switchtime < 0.5) || (movestate == 3 && switchtime >= 0.5)) {
-			player.movey += 800 / 60;
-		}
-		if ((movestate == 3 && switchtime < 0.5) || (movestate == 2 && switchtime >= 0.5)) {
-			player.movey -= 800 / 60;
-		}
-		switchtime += 1.0f / 30.0f;
-	}
-	if (switchtime >= 1) {
-		if (movestate == 2) {
-			movestate = 1;
-		}
-		if (movestate == 3) {
-			movestate = 0;
-		}
-	}
-
-	// Movement logic
-	movement(&player, movestate, speed);
-
-	// position update
-	player.x += player.movex * dt;
-	player.y += player.movey * dt;
+	// movement logics
+	movement(&player, movestate, speed, dt);
 
 	// reset checks for jumping and entering
 	player.onplatform = 0;
 	player.withinx = 0;
 	player.leaveplatform = 0;
 	// collision against platforms
-	if (movestate == 1 || movestate == 0) {
-		for (int plat_index = 0; plat_index < numplats1; plat_index++) {
-			CollPlatforms(plat_index, Platform[plat_index].numcoords, Platform[plat_index], &player, player);
+	if (movestate == OnPlat) {
+		player.stamina += 40.0f * dt;
+		for (int plat_index = 0; plat_index < numplats; plat_index++) {
+			CollOnPlatforms(plat_index, Platform[plat_index], &player, player);
 		}
 	}
+
+	else if (movestate == InPlat) {
+		player.stamina -= 20.0f * dt;
+		for (int plat_index = 0; plat_index < numplats; plat_index++) {
+			CollPlatforms(plat_index, Platform[plat_index], &player, player);
+		}
+	}
+	player.stamina = CP_Math_ClampFloat(player.stamina, 0, 100);
 	// window clamps
-	if (player.x < 0) {
-		player.x = 0;
-	}
-	if (player.x + player.width > width) {
-		player.x = width - player.width;
-	}
-	if (player.y < 0) {
-		player.y = 0;
+	player.x = CP_Math_ClampFloat(player.x, 0, width - player.width);
+	if (player.y + player.height > height || player.y < 0) {
 		player.movey = 0;
 	}
-	if (player.y + player.height > height) {
-		player.y = height - player.height;
+	player.y = CP_Math_ClampFloat(player.y, 0, height - player.height);
+
+	// reset with R or touch ground while movestate OnPlat
+	if (CP_Input_KeyTriggered(KEY_R) || ((player.y >= height - player.height) && movestate == OnPlat) || (player.stamina == 0)) {
+		player.x = spawnx;
+		player.y = spawny;
+		movestate = OnPlat;
 		player.movey = 0;
+		deaths++;
 	}
-	// reset with R or touch ground in platform movestate
-	if (CP_Input_KeyDown(KEY_R)|| ((player.y >= height - player.height) && movestate == 0)) {
-		player.x = 150;
-		player.y = 200;
-		movestate = 0;
-		player.movey = 0;
-	}
-	
-
-#pragma endregion
-
-	// HP
-	/*---------------------------------------------------------------------------------------------------*/
-#pragma region HP
-
-	// hp clamp
-	if (player.hp < 0) { player.hp = 0; };
-	if (player.hp > 100) { player.hp = 100; };
 #pragma endregion
 
 	// RENDER
 	/*---------------------------------------------------------------------------------------------------*/
 #pragma region RENDER
-
 	// Platforms
-	CP_Settings_Fill(hpcol);
-	for (int i = 0; i < numplats1; i++) {
+	CP_Settings_Fill(plat);
+	for (int i = 0; i < numplats; i++) {
 		DrawPlatform(i);
 	}
 
 	// Goal
 	CP_Settings_Fill(green);
-	CP_Graphics_DrawRect(1520, 250, 50, 50);
+	CP_Graphics_DrawRect(goalx, goaly, 50, 50);
 
-	if (AreSquaresIntersecting(player.x,player.y,player.height,player.width,1520,250,50,50)) {
+	if (AreSquaresIntersecting(player.x - 15,player.y - 15,player.height + 30,player.width + 30,goalx,goaly,50,50)) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+		CP_Settings_TextSize(150);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText("Yippie!", 1300, 50);
 	}
 
-	// Player
-	// CP_Settings_Fill(player.color);
-	// CP_Graphics_DrawRect(player.x - 10, player.y - 10, player.width + 20, player.height + 20);
-	CP_Image_Draw(player_sprite, player.x - 10, player.y - 10, player.width + 20, player.height + 20, 255);
-
-	//HAZARD DRAWING
+	// HAZARD DRAWING
 	for (int i = 0; i < numberoftraps; ++i) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 		CP_Graphics_DrawTriangle(traps[i].x[0], traps[i].y[0], traps[i].x[1], traps[i].y[1], traps[i].x[2], traps[i].y[2]);
+	}
+
+	// Player
+	CP_Image_Draw(player_sprite, player.x - 15, player.y - 15, player.width + 30, player.height + 30, 255);
+	// Stamina Bar
+	CP_Settings_Fill(stamina);
+	if (player.stamina <= 25.0f) {
+		CP_Settings_Fill(red);
+	}
+	DrawStatBar(player.x - 15, player.y - 25, player.x + 35, player.y - 20, player.stamina, 100);
+
+	// DEATHS DRAWING
+	CP_Settings_Fill(black);
+	CP_Settings_TextSize(50);
+	char deathcount[20] = { 0 };
+	if (deaths < 100) {
+		sprintf_s(deathcount, 20, "Deaths: %d", deaths);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText(deathcount, 50, 50);
+	}
+	else {
+		CP_Font_DrawText("Bruh", 50, 50);
 	}
 
 #pragma endregion

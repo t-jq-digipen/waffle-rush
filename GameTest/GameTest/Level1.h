@@ -1,7 +1,7 @@
 //---------------------------------------------------------
-// file:	game.h
-// author:	TAN JUN QUAN
-// email:	t.junquan@digipen.edu
+// file:	Level1.h
+// author:	AVID WAFFLE ENJOYERS
+// email:	-
 //
 // brief:	Declarations of game stage
 //

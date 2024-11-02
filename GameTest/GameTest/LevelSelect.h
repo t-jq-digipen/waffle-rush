@@ -13,14 +13,13 @@
 #include "Level1.h"
 
 // leevl struct
-typedef struct Level {
+typedef struct level {
 	int level_no;
 	int isUnlocked;
 	int isCleared;
-} Level;
-
-// number of levels = 5
-Level levels[5];
+	int score;
+	int time;
+} level;
 
 void LSelect_Init(void);
 void LSelect_Update(void);

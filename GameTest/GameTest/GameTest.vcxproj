@@ -32,6 +32,9 @@
   <ItemGroup>
     <Text Include="..\Assets\Base.txt" />
     <Text Include="..\Assets\Level1.txt" />
+    <Text Include="..\Assets\Level1hazard.txt" />
+    <Text Include="..\Assets\LevelSelect.txt" />
+    <Text Include="..\Assets\testhazard.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

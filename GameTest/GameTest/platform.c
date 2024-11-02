@@ -1,170 +1,230 @@
+//---------------------------------------------------------
+// file:	platform.c
+// author:	AVID WAFFLE ENJOYERS
+// email:	-
+//
+// brief:   Definition of functions used in platformer logic
+//			- Movement
+//			- Transitioning movestates
+//			- Assigning platform properties
+//			- Collision logic
+//
+// Copyright © 2020 DigiPen, All rights reserved.
+//---------------------------------------------------------
+
 #pragma once
 #include "platform.h"
 
 
-// Coordinates (NOTE: to be changed to read from text file)
-void platform_coordinates(int plat_index, int coord_index, float x, float y) {
-	Platform[plat_index].platcoords[coord_index] = (coords){ x,y };
-}
-
 // MOVEMENT AND MOVESTATE LOGIC
 #pragma region Movement and movestate
-int movestate_set(Player *p, int movestate) {
-	// 3 conditions to allow phasing into platform
-	// movestate == 0 : platformer
-	// pply->onplatform == 1 : on platform
-	// pply->withinx == 1 : within x of platform
-	if (movestate == 0 && p->onplatform == 1 && p->withinx == 1) {
-		p->y += 80;
-		return 1;
+// 
+int start_transition(Player* ply, MoveState movestate) {
+	if (movestate == OnPlat && ply->onplatform == 1 && ply->withinx == 1) {
+		movestate = EnterPlat;
+		ply->movex = 0;
 	}
-	// 3 conditions to allow exiting platform
-	// movestate == 1 : topdown
-	// pply->y > 200 : player will not bust above the window of screen
-	// pply->leaveplatform == 1 : player is touching top edge of the platform
-	else if (movestate == 1 && p->y > 200 && p->leaveplatform == 1) {
-		p->y -= 80;
-		return 0;
+	else if (movestate == InPlat && ply->y > 200 && ply->leaveplatform == 1) {
+		movestate = ExitPlat;
+		ply->movex = 0;
+	}
+	if (movestate == EnterPlat || movestate == ExitPlat) {
+		ply->transition_time = 0;
 	}
 	return movestate;
 }
 
-int start_transition(Player* ply, int movestate) {
-	if (movestate == 0 && ply->onplatform == 1 && ply->withinx == 1) {
-		movestate = 2;
-		ply->movex = 0;
+MoveState transition(Player* ply, MoveState movestate, float dt) {
+
+	// Alter player y value while transitioning
+	if (ply->transition_time < 1) {
+		// For first half of transition time, increase speed, else reduce speed
+		ply->movey = (ply->transition_time < 0.5f) ? 400 * ply->transition_time : 400.0f - 400 * ply->transition_time;
+
+		// If entering platform, += speed
+		if ((movestate == EnterPlat)) {
+			ply->y += ply->movey * dt;
+		}
+		// If exiting platform, -= speed
+		if ((movestate == ExitPlat)) {
+			ply->y -= ply->movey * dt;
+		}
+		// Update transit timer such that timer completes in 0.5s
+		ply->transition_time += 2 * dt;
 	}
-	else if (movestate == 1 && ply->y > 200 && ply->leaveplatform == 1) {
-		movestate = 3;
-		ply->movex = 0;
+
+	// End of transitioning, return movestate to continue movement
+	if (ply->transition_time >= 1) {
+		if (movestate == EnterPlat) {
+			return InPlat;
+		}
+		if (movestate == ExitPlat) {
+			return OnPlat;
+		}
 	}
 	return movestate;
 }
 
-//int end_transition(Player* ply, float dt, int movestate) {
-//	if (switchtime < 1) {
-//		if ((movestate == 2 && switchtime < 0.5) || (movestate == 3 && switchtime >= 0.5)) {
-//			ply->movey += 800 * dt;
-//		}
-//		if ((movestate == 3 && switchtime < 0.5) || (movestate == 2 && switchtime >= 0.5)) {
-//			ply->movey -= 800 * dt;
-//		}
-//		switchtime += 2 * dt;
-//	}
-//	if (switchtime >= 1) {
-//		if (movestate == 2) {
-//			movestate = 1;
-//		}
-//		if (movestate == 3) {
-//			movestate = 0;
-//		}
-//	}
-//	return movestate;
-//}
+void movement(Player* ply, MoveState movestate, float speed, float dt) {
+	float accel = 3000.0f;
+	if (movestate == OnPlat) { // platformer
 
-void movement(Player* p, int movestate, float speed) {
-	if (movestate == 0) { // platformer
-		p->movex = 0; p->movey += 10;
-		//if (CP_Input_KeyDown(KEY_W)) { pply->movey = -speed; }; //temp fly
-		if (CP_Input_KeyTriggered(KEY_SPACE) && p->onplatform == 1) { p->movey = -speed; } // jump!
-		if (CP_Input_KeyDown(KEY_A)) { p->movex = -speed; };
-		if (CP_Input_KeyDown(KEY_D)) { p->movex = speed; };
+		// Gravity and terminal velocity
+		if (ply->movey < 1000.0f) {
+			ply->movey += 1800.0f * dt;
+		}
+		// jump!
+		if (CP_Input_KeyTriggered(KEY_SPACE) && ply->onplatform == 1) {
+			ply->movey = -speed;
+		}
+		// left
+		if (CP_Input_KeyDown(KEY_A) && (ply->movex > -speed)) {
+			ply->movex -= accel * dt;
+		}
+		else if ((ply->movex < 100.f) && !(CP_Input_KeyDown(KEY_A))) {
+			ply->movex += accel * dt;
+		};
+		// right
+		if (CP_Input_KeyDown(KEY_D) && (ply->movex < speed)) {
+			ply->movex += accel * dt;
+		}
+		else if ((ply->movex > 100.f) && !(CP_Input_KeyDown(KEY_D))) {
+			ply->movex -= accel * dt;
+		};
+		if ((!((CP_Input_KeyDown(KEY_A)) || (CP_Input_KeyDown(KEY_D))) && (ply->movex <= 100.f && ply->movex >= -100.f))) {
+			ply->movex = 0;
+		}
 	}
-	if (movestate == 1) { // top down/inside platform
-		p->movex = 0; p->movey = 0;
-		if (CP_Input_KeyDown(KEY_W)) { p->movey = -speed; };
-		if (CP_Input_KeyDown(KEY_A)) { p->movex = -speed; };
-		if (CP_Input_KeyDown(KEY_S)) { p->movey = speed; };
-		if (CP_Input_KeyDown(KEY_D)) { p->movex = speed; };
+	if (movestate == InPlat) { // inside platform
+		ply->movex = 0; ply->movey = 0;
+		if (CP_Input_KeyDown(KEY_W)) { ply->movey = -speed / 2; };
+		if (CP_Input_KeyDown(KEY_A)) { ply->movex = -speed / 2; };
+		if (CP_Input_KeyDown(KEY_S)) { ply->movey = speed / 2; };
+		if (CP_Input_KeyDown(KEY_D)) { ply->movex = speed / 2; };
+	}
+
+	// Update movestate if InPlat/OnPlat
+	if (movestate == InPlat || movestate == OnPlat) {
+		ply->x += ply->movex * dt;
+		ply->y += ply->movey * dt;
 	}
 }
-
 #pragma endregion
 
 
 // HITBOX LOGIC
 /*---------------------------------------------------------------------------------------------------*/
 #pragma region Hitboxes
+	//---------------------------------------------------------
+	// Platforms are constructed as a series of "walls" named "hitboxes" that construct the platform, 
+	// they are hollow to facilitate traversal within the platform
+	// Construction logic is as follows:
+	// Coordinates start from a top left corner, and go in a clockwise direction
+	// The first hitbox is always horizontal
+	// For horizontal hitboxes:
+	//	Offset -15 for both left and right
+	//	Offset +15 for both top and bottom
+	// For vertical hitboxes:
+	//	Offset +15 for both left and right
+	//	Offset +15 for both top and bottom
+	// This ensures the collision logic will not have conflicts when corners are touched by the player
+	//---------------------------------------------------------
 
-// assigns platform horizontal hitboxes, used in hitbox function below
-void horizontalhitbox(int coord_index, platform* plt) {
-	if (plt->platcoords[coord_index + 1].x > plt->platcoords[coord_index].x) {		// if next coordx > current coordx
-		plt->blocks[coord_index] = (platblocks){
-			plt->platcoords[coord_index].x + 10,
-			plt->platcoords[coord_index + 1].x - 10,
-			plt->platcoords[coord_index].y - 10,
-			plt->platcoords[coord_index].y + 10,
-			(plt->platcoords[coord_index + 1].x - 10) - (plt->platcoords[coord_index].x + 10),
-			20
-		};
+	// Initializes platform coordinates
+	void platform_coordinates(int plat_index, int coord_index, float x, float y) {
+		Platform[plat_index].platcoords[coord_index] = (coords){ x,y };
 	}
-	else {																			// if next coordx < current coordx
-		plt->blocks[coord_index] = (platblocks){		
-			plt->platcoords[coord_index + 1].x + 10,
-			plt->platcoords[coord_index].x - 10,
-			plt->platcoords[coord_index].y - 10,
-			plt->platcoords[coord_index].y + 10,
-			(plt->platcoords[coord_index].x - 10) - (plt->platcoords[coord_index + 1].x + 10),
-			20
-		};
-	}
-}
 
-// assigns platform vertical hitboxes, used in hitbox function below
-void verticalhitbox(int coord_index, platform* plt) {
-	if (coord_index != plt->numcoords - 1) {										// if not last coord
-		if (plt->platcoords[coord_index+1].y > plt->platcoords[coord_index].y) {	// if next coordy > current coordy
-			plt->blocks[coord_index] = (platblocks){
-				plt->platcoords[coord_index].x - 10,
-				plt->platcoords[coord_index].x + 10,
-				plt->platcoords[coord_index].y - 10,
-				plt->platcoords[coord_index + 1].y + 10,
-				20,
-				(plt->platcoords[coord_index + 1].y + 10) - (plt->platcoords[coord_index].y - 10)
+	void platform_onblocks(int plat_index, int block_index, float x1, float y1, float x2, float y2) {
+		Platform[plat_index].onblocks[block_index] = (platblocks){ x1-15, x2+15, y1-15, y2+15, (x2+15) - (x1-15), (y2+15) - (y1-15) };
+	}
+
+	/*void platblock_coordinates(int plat_index, int block_index, platform* plt, float x, float y) {
+		plt[plat_index].onblocks[block_index]->x1 = x;
+	}*/
+	// assigns platform horizontal hitboxes, used in hitbox function below
+	void horizontalhitbox(int coord_index, platform* plt) {
+		// Left to right
+		if (plt->platcoords[coord_index + 1].x > plt->platcoords[coord_index].x) {		// if next coordx > current coordx
+			plt->inblocks[coord_index] = (platblocks){
+				plt->platcoords[coord_index].x + 15,
+				plt->platcoords[coord_index + 1].x - 15,
+				plt->platcoords[coord_index].y - 15,
+				plt->platcoords[coord_index].y + 15,
+				(plt->platcoords[coord_index + 1].x - 15) - (plt->platcoords[coord_index].x + 15),
+				30
 			};
 		}
-		else {																		// if next coordy < current coordy 
-			plt->blocks[coord_index] = (platblocks){
-				plt->platcoords[coord_index].x - 10,
-				plt->platcoords[coord_index].x + 10,
-				plt->platcoords[coord_index + 1].y - 10,
-				plt->platcoords[coord_index].y + 10,
-				20,
-				(plt->platcoords[coord_index].y + 10) - (plt->platcoords[coord_index+1].y - 10)
+		// Right to left
+		else {																			// if next coordx < current coordx
+			plt->inblocks[coord_index] = (platblocks){
+				plt->platcoords[coord_index + 1].x + 15,
+				plt->platcoords[coord_index].x - 15,
+				plt->platcoords[coord_index].y - 15,
+				plt->platcoords[coord_index].y + 15,
+				(plt->platcoords[coord_index].x - 15) - (plt->platcoords[coord_index + 1].x + 15),
+				30
 			};
-
 		}
 	}
-	else {																			// if last coord
-			plt->blocks[coord_index] = (platblocks){
-			plt->platcoords[0].x - 10,
-			plt->platcoords[coord_index].x + 10,
-			plt->platcoords[0].y - 10,
-			plt->platcoords[coord_index].y + 10,
-			20,
-			(plt->platcoords[coord_index].y + 10) - (plt->platcoords[0].y - 10)
-		};
-	}
-}
 
-//---------------------------------------------------------
-// determines all hitboxes of platforms, use in a loop with number of total platforms per level
-// e.g :
-//		for (int plat_index = 0; plat_index < numplats; plat_index++) {
-//			hitbox(plat_index, Platform[plat_index].numcoords, &Platform[plat_index]);
-//		}
-//---------------------------------------------------------
-void hitbox(int plat_index, int numplatcoords, platform* plt) {
+	// assigns platform vertical hitboxes, used in hitbox function below
+	void verticalhitbox(int coord_index, platform* plt) {
+		// Top to bottom
+		if (coord_index != plt->numcoords - 1) {
+			if (plt->platcoords[coord_index + 1].y > plt->platcoords[coord_index].y) {	
+				plt->inblocks[coord_index] = (platblocks){
+					plt->platcoords[coord_index].x - 15,
+					plt->platcoords[coord_index].x + 15,
+					plt->platcoords[coord_index].y - 15,
+					plt->platcoords[coord_index + 1].y + 15,
+					30,
+					(plt->platcoords[coord_index + 1].y + 15) - (plt->platcoords[coord_index].y - 15)
+				};
+			}
+		// Bottom to top
+			else {
+				plt->inblocks[coord_index] = (platblocks){
+					plt->platcoords[coord_index].x - 15,
+					plt->platcoords[coord_index].x + 15,
+					plt->platcoords[coord_index + 1].y - 15,
+					plt->platcoords[coord_index].y + 15,
+					30,
+					(plt->platcoords[coord_index].y + 15) - (plt->platcoords[coord_index + 1].y - 15)
+				};
 
-	for (int coord_index = 0; coord_index < Platform[plat_index].numcoords; coord_index++) {
-		if (coord_index % 2 == 0 && coord_index < Platform[plat_index].numcoords - 1) { //horizontal & not last coord
-			horizontalhitbox(coord_index, &Platform[plat_index]);
+			}
 		}
-		else { //vertical
-			verticalhitbox(coord_index, &Platform[plat_index]);
+		// Last coordinate
+		else {
+			plt->inblocks[coord_index] = (platblocks){
+			plt->platcoords[0].x - 15,
+			plt->platcoords[coord_index].x + 15,
+			plt->platcoords[0].y - 15,
+			plt->platcoords[coord_index].y + 15,
+			30,
+			(plt->platcoords[coord_index].y + 15) - (plt->platcoords[0].y - 15)
+			};
 		}
 	}
-}
+	//---------------------------------------------------------
+	// determines all hitboxes of platforms, use in a loop with number of total platforms per level
+	// e.g :
+	//		for (int plat_index = 0; plat_index < numplats; plat_index++) {
+	//			hitbox(plat_index, Platform[plat_index].numcoords, &Platform[plat_index]);
+	//		}
+	//---------------------------------------------------------
+	void hitbox(int plat_index, int numplatcoords, platform* plt) {
+		// Go through all coordinates in a platform struct, and initialize all hitbox coordinates
+		for (int coord_index = 0; coord_index < Platform[plat_index].numcoords; coord_index++) {
+			if (coord_index % 2 == 0 && coord_index < Platform[plat_index].numcoords - 1) { //horizontal & not last coord
+				horizontalhitbox(coord_index, &Platform[plat_index]);
+			}
+			else { //vertical
+				verticalhitbox(coord_index, &Platform[plat_index]);
+			}
+		}
+	}
 #pragma endregion
 
 
@@ -172,98 +232,144 @@ void hitbox(int plat_index, int numplatcoords, platform* plt) {
 /*---------------------------------------------------------------------------------------------------*/
 #pragma region Collision and repositions
 
-// am i colliding
-int collision(platblocks plt, Player p) {
-	float pyh = p.y + p.height;
-	float pxw = p.x + p.width;
-	float pltx2 = plt.x1 + plt.w;
-	float plty2 = plt.y1 + plt.h;
-	return (pxw >= plt.x1 && p.x <= pltx2 && pyh >= plt.y1 && p.y <= plty2);
-}
-
-// checks if collision is vertical or horizontal
-int collision_direction(platblocks plt, Player p) {
-
-	// assign player x2 and y2 coordinates
-	float px2 = (p.x + p.width);
-	float py2 = (p.y + p.height);
-	// how much the player goes into the platform
-	float leftcoll = px2 - plt.x1;
-	float rightcoll = plt.x2 - p.x;
-	float topcoll = py2 - plt.y1;
-	float botcoll = plt.y2 - p.y;
-
-	// return lower value for horizontal/vertical
-	float horizontal = (leftcoll < rightcoll) ? leftcoll : rightcoll;
-	float vertical = (topcoll < botcoll) ? topcoll : botcoll;
-
-	// horizontal = 1, vertical = 2
-	return (horizontal < vertical) ? 1 : 2;
-}
-
-// fix x position
-float fix_collide_x(platblocks plt, Player p) {
-	if (p.x + p.width / 2 < plt.x1 + plt.w / 2) { // is player left of platform
-		return plt.x1 - p.width; // throw left of platform
+	// am i colliding
+	int collision(platblocks plt, Player p) {
+		float pyh = p.y + p.height;
+		float pxw = p.x + p.width;
+		float pltx2 = plt.x1 + plt.w;
+		float plty2 = plt.y1 + plt.h;
+		return (pxw >= plt.x1 && p.x <= pltx2 && pyh >= plt.y1 && p.y <= plty2);
 	}
-	return plt.x1 + plt.w; // throw right of platform
-}
 
-// fix y position
-float fix_collide_y(platblocks plt, Player p) {
-	if (p.y + p.height / 2 < plt.y1) { // is player above platform
-		return plt.y1 - p.height; // throw up of platform
+	// checks if collision is vertical or horizontal
+
+	int collision_direction(platblocks plt, Player p) {
+
+		// assign player center xy coordinates
+		float px = (p.x + p.width / 2);
+		float py = (p.y + p.height / 2);
+		// how much the player goes into the platform
+		float leftcoll = (abs)((px + p.width/2) - plt.x1);
+		float rightcoll = (abs)((px - p.width) - plt.x2);
+		float topcoll = (abs)((py + p.height/2) - plt.y1);
+		float botcoll = (abs)(plt.y2 - (py - p.height/2));
+
+		// return lower value for horizontal/vertical
+		float horizontal = (leftcoll < rightcoll) ? leftcoll : rightcoll;
+		float vertical = (topcoll < botcoll) ? topcoll : botcoll;
+
+		// horizontal = 1, vertical = 2
+		return (horizontal < vertical) ? 1 : 2;
 	}
-	return plt.y2; // throw bottom of platform
-}
 
-//---------------------------------------------------------
-// fixes player position in relation to platform hitboxes
-// e.g:
-//		for (int plat_index = 0; plat_index < numplats; plat_index++) {
-//			CollPlatforms(plat_index, Platform[plat_index].numcoords, Platform[plat_index], &pply, pply);
-//		}
-//---------------------------------------------------------
-void CollPlatforms(int plat_index, int numplatcoords, platform plt, Player* pply, Player ply) {
-	// iterate through number of coordinates
-	for (int coord_index = 0; coord_index < Platform[plat_index].numcoords; coord_index++) {
-		// check for collision
-		if (collision(Platform[plat_index].blocks[coord_index], ply)) {
-			// check if collision is from vertical and not horizontal
-			if (collision_direction(Platform[plat_index].blocks[coord_index], ply) == 2) { // if colliding vertically
-				if (ply.x < Platform[plat_index].blocks[coord_index].x2 && ply.x + ply.width > Platform[plat_index].blocks[coord_index].x1) {  // if player within x coords of platform 
 
-					pply->y = fix_collide_y(Platform[plat_index].blocks[coord_index], ply);
+	// fix x position
+	float fix_collide_x(platblocks plt, Player p) {
+		if (p.x + p.width / 2 < plt.x1 + plt.w / 2) { // is player left of platform
+			return plt.x1 - p.width; // throw left of platform
+		}
+		return plt.x1 + plt.w; // throw right of platform
+	}
 
-					// check player within X corners of platform
-					if (ply.x >= Platform[plat_index].blocks[coord_index].x1 && ply.x + ply.width <= Platform[plat_index].blocks[coord_index].x2) {
-						pply->withinx = 1;
-						// check player touching top surface of platform to exit
-						if (pply->y == Platform[plat_index].blocks[coord_index].y2 && pply->y <= Platform[plat_index].blocks[coord_index].y2 + 50) {
-							pply->leaveplatform = 1;
+	// fix y position
+	float fix_collide_y(platblocks plt, Player p) {
+		if (p.y + p.height / 2 < plt.y1+plt.h/2) { // is player above platform
+			return plt.y1 - p.height; // throw up of platform
+		}
+		return plt.y2; // throw bottom of platform
+	}
+
+	//---------------------------------------------------------
+	// fixes player position in relation to platform hitboxes
+	// e.g:
+	//		for (int plat_index = 0; plat_index < numplats; plat_index++) {
+	//			CollPlatforms(plat_index, Platform[plat_index].numcoords, Platform[plat_index], &pply, pply);
+	//		}
+	//---------------------------------------------------------
+	void CollPlatforms(int plat_index, platform plt, Player* pply, Player ply) {
+		// iterate through number of coordinates
+		for (int coord_index = 0; coord_index < Platform[plat_index].numcoords; coord_index++) {
+			// check for collision
+			if (collision(Platform[plat_index].inblocks[coord_index], ply)) {
+				// check if collision is from vertical and not horizontal
+				if (collision_direction(Platform[plat_index].inblocks[coord_index], ply) == 2) { // if colliding vertically
+					if (ply.x < Platform[plat_index].inblocks[coord_index].x2 && ply.x + ply.width > Platform[plat_index].inblocks[coord_index].x1) {  // if player within x coords of platform 
+
+						pply->y = fix_collide_y(Platform[plat_index].inblocks[coord_index], ply);
+
+						// check player within X corners of platform
+						if (ply.x >= Platform[plat_index].inblocks[coord_index].x1 && ply.x + ply.width <= Platform[plat_index].inblocks[coord_index].x2) {
+							pply->withinx = 1;
+							// check player touching top surface of platform to exit
+							if ((coord_index%2==0) && (pply->y == Platform[plat_index].inblocks[coord_index].y2)) {
+								pply->leaveplatform = 1;
+							}
 						}
-					}
 
-					if ((pply->y + ply.height) == Platform[plat_index].blocks[coord_index].y1) {
-						pply->onplatform = 1; // on platform!
-					}
-					//---------------------------------------------------------
-					// two conditions to set player vertical velocity 0:
-					// 1) if player is on top of platform and travelling downwards
-					// 2) if player bumps bottom of platform and travelling upwards
-					//---------------------------------------------------------
-					if (ply.y < Platform[plat_index].blocks[coord_index].y1 && ply.movey > 0 || ply.y > Platform[plat_index].blocks[coord_index].y1 && ply.movey < 0) { pply->movey = 0; }
+						if ((pply->y + ply.height) == Platform[plat_index].inblocks[coord_index].y1) {
+							pply->onplatform = 1; // on platform!
+						}
+						//---------------------------------------------------------
+						// two conditions to set player vertical velocity 0:
+						// 1) if player is on top of platform and travelling downwards
+						// 2) if player bumps bottom of platform and travelling upwards
+						//---------------------------------------------------------
+						if (ply.y < Platform[plat_index].inblocks[coord_index].y1 && ply.movey > 0 || ply.y > Platform[plat_index].inblocks[coord_index].y1 && ply.movey < 0) { pply->movey = 0; }
 
-					// end if player within x coords of platform
+						// end if player within x coords of platform
+					}
+					// end if colliding vertically
 				}
-				// end if colliding vertically
-			}
-			// if player is outside x coords of platform
-			// aka player is colliding from the sides
-			else pply->x = fix_collide_x(Platform[plat_index].blocks[coord_index], ply);
-		}// end if collision check
+				// if player is outside x coords of platform
+				// aka player is colliding from the sides
+				else 
+					pply->x = fix_collide_x(Platform[plat_index].inblocks[coord_index], ply);
+				if (collision_direction(Platform[plat_index].inblocks[coord_index], ply) == 1) {
+					pply->movex = 0;
+				}
+			}// end if collision check
+		}
 	}
-}
+	void CollOnPlatforms(int plat_index, platform plt, Player* pply, Player ply) {
+		// iterate through number of coordinates
+		for (int block_index = 0; block_index < Platform[plat_index].numblocks; block_index++) {
+			// check for collision
+			if (collision(Platform[plat_index].onblocks[block_index], ply)) {
+				// check if collision is from vertical and not horizontal
+				if (collision_direction(Platform[plat_index].onblocks[block_index], ply) == 2) { // if colliding vertically
+					if (ply.x < Platform[plat_index].onblocks[block_index].x2 && ply.x + ply.width > Platform[plat_index].onblocks[block_index].x1) {  // if player within x coords of platform 
+
+						pply->y = fix_collide_y(Platform[plat_index].onblocks[block_index], ply);
+
+						// check player within X corners of platform
+						if (ply.x >= Platform[plat_index].onblocks[block_index].x1+30 && ply.x + ply.width <= Platform[plat_index].onblocks[block_index].x2-30) {
+							pply->withinx = 1;
+						}
+
+						if ((pply->y + ply.height) == Platform[plat_index].onblocks[block_index].y1) {
+							pply->onplatform = 1; // on platform!
+						}
+						//---------------------------------------------------------
+						// two conditions to set player vertical velocity 0:
+						// 1) if player is on top of platform and travelling downwards
+						// 2) if player bumps bottom of platform and travelling upwards
+						//---------------------------------------------------------
+						if (ply.y < Platform[plat_index].onblocks[block_index].y1 && ply.movey > 0 || ply.y > Platform[plat_index].onblocks[block_index].y1 && ply.movey < 0) { pply->movey = 0; }
+
+						// end if player within x coords of platform
+					}
+					// end if colliding vertically
+				}
+				// if player is outside x coords of platform
+				// aka player is colliding from the sides
+				else pply->x = fix_collide_x(Platform[plat_index].onblocks[block_index], ply);
+				if (collision_direction(Platform[plat_index].onblocks[block_index], ply) == 1) {
+					pply->movex = 0;
+				}
+				
+			}// end if collision check
+		}
+	}
 #pragma endregion
 
 void DrawPlatform(int plat_index) {
