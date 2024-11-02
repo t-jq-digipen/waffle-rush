@@ -32,16 +32,31 @@ int numplats;
 int deaths;
 float speed; //speed
 float width, height; //window width/height
-float spawnx, spawny, goalx, goaly;
-float totalMinutes, totalSeconds, totalMillis; // timer
+float spawnx, spawny, goalx, goaly; // spawn and goal position
 int isPaused; // check if game paused
+int isCleared; // check if level cleared (player touches goal)
+int levelScore; // level score
 
 CP_Font text;
 CP_Image player_sprite;
 CP_Color bg, pausebg, black, red, green, plat, stamina; //colors
 
+int numplats;
+
+
+
 // STRUCTS --------------------------------------------
 #pragma region Structs
+
+	// Time Struct
+	#pragma region Timer
+		typedef struct Timer {
+			float minutes, seconds, millis;
+		} Timer;
+
+		Timer timer;
+	#pragma endregion
+
 
 	// Platform Struct
 	#pragma region Platform Structs
@@ -101,7 +116,6 @@ CP_Color bg, pausebg, black, red, green, plat, stamina; //colors
 	#pragma endregion Platform Structs
 
 
-
 	// Player Struct
 	#pragma region Player Struct
 		typedef struct Player {
@@ -119,7 +133,7 @@ CP_Color bg, pausebg, black, red, green, plat, stamina; //colors
 			CP_Color color; //color
 		} Player;
 
-		struct Player player; //player 
+		Player player; //player 
 	#pragma endregion Player Struct
 
 #pragma endregion

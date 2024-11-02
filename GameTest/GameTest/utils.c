@@ -158,3 +158,9 @@ int SquareTriangleCollide (float squarex, float squarey, float squarewidth, floa
 
 	return 0;
 }
+
+void AddScore(int *totalScore, int addScore, int *isCleared) {
+	if (!*isCleared) {
+		*totalScore += addScore;
+	}
+}

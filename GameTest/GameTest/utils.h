@@ -14,6 +14,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// Utility globals
+float mouseX, mouseY;
+
 
 // check if position is within a rectangle
 int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y);
@@ -42,3 +45,6 @@ void DrawHPBar2(float pos_x1, float pos_y1, float pos_x2, float pos_y2, float hp
 
 // check if square collides with triangle
 int SquareTriangleCollide(float squarex, float squarey, float squarewidth, float squareheight, float tri1x, float tri1y, float tri2x, float tri2y, float tri3x, float tri3y);
+
+// update score
+void AddScore(int *totalScore, int addScore, int *isCleared);

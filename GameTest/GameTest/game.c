@@ -15,61 +15,29 @@ CP_Image player_sprite;
 
 void Game_Init(void)
 {
+	// ASSET LOADS
+	/*---------------------------------------------------------------------------------------------------------------------*/
+#pragma region Assets
 	// load font
 	text = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
 	// load player sprite
 	player_sprite = CP_Image_Load("Assets/Waffle_Player.png");
+#pragma endregion
 
-	// get window size
-	width = CP_System_GetWindowWidth();
-	height = CP_System_GetWindowHeight();
 
-	// initialize colors
-	pausebg = CP_Color_Create(0, 0, 0, 100);
-	bg = CP_Color_Create(100, 100, 100, 255); //background
-	black = CP_Color_Create(0, 0, 0, 255); //black
-	red = CP_Color_Create(200, 50, 50, 255); //red
-	green = CP_Color_Create(50, 200, 50, 255); //green
-	plat = CP_Color_Create(255, 150, 150, 255); //platform colour
-	stamina = CP_Color_Create(255, 255, 40, 255); //stamina colour
-
-	// initialize base speed
-	speed = 600;
-
-	// initialize movestate
-	movestate = OnPlat;
-
-	// initialize deaths
-	deaths = 0;
-
-	// initialize player
-	// size
-	player.width = 20;
-	player.height = 20;
-	// position
-	player.x = spawnx = 700;
-	player.y = spawny = 200;
-	// movement
-	player.movex = 0;
-	player.movey = 0;
-	// transit variables
-	player.transition_time = 1.0f;
-	// health
-	player.stamina = 100.0f;
-	// color
-	player.color = CP_Color_Create(150, 150, 200, 255);
-
-	// timer
-	totalMinutes = 0;
-	totalSeconds = 0;
-	totalMillis = 0;
-
-	// game pause
-	isPaused = 0;
+	// MAP INIT
+	/*---------------------------------------------------------------------------------------------------------------------*/
+#pragma region MAP
+	// initialize spawn location
+	spawnx = 700;
+	spawny = 200;
+	// initialize test goal
+	goalx = 1000;
+	goaly = 350;
 
 	// PLATFORMS INITIALIZATION
-	/*---------------------------------------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Initialize Platform
 	FILE* file = fopen("Assets/Base.txt", "r");
 
@@ -117,7 +85,7 @@ void Game_Init(void)
 #pragma endregion
 
 	//HAZARDS
-	/*-----------------------------------------------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Hazard
 	FILE* file1 = fopen("Assets/testhazard.txt", "r");
 	fscanf_s(file1, "%d", &numberoftraps);
@@ -131,9 +99,72 @@ void Game_Init(void)
 
 	fclose(file1);
 #pragma endregion
+#pragma endregion
+	// PLAYER INITS
+	/*---------------------------------------------------------------------------------------------------------------------*/
+#pragma region Player related
+	// initialize base speed
+	speed = 600;
+
+	// initialize player struct
+	// size
+	player.width = 20;
+	player.height = 20;
+	// position
+	player.x = spawnx;
+	player.y = spawny;
+	// movement
+	player.movex = 0;
+	player.movey = 0;
+	// transit variables
+	player.transition_time = 1.0f;
+	// health
+	player.stamina = 100.0f;
+	// color
+	player.color = CP_Color_Create(150, 150, 200, 255);
+
+	// initialize deaths
+	deaths = 0;
+#pragma endregion
+	// Game states, counters
+	/*---------------------------------------------------------------------------------------------------------------------*/
+#pragma region States and counters
+	// initialize movestate
+	movestate = OnPlat;
+
+	// timer
+	timer = (Timer){ 0,0,0 };
+
+	// game pause
+	isPaused = 0;
+
+	// check if level complete
+	isCleared = 0;
+
+	// score
+	levelScore = 0;
+#pragma endregion
+	// Misc settings
+	/*---------------------------------------------------------------------------------------------------------------------*/
+#pragma region Misc inits and settings
+	// Window size
+	width = CP_System_GetWindowWidth();
+	height = CP_System_GetWindowHeight();
+
+	// Initialize colors
+	pausebg = CP_Color_Create(0, 0, 0, 100);
+	bg = CP_Color_Create(100, 100, 100, 255); //background
+	black = CP_Color_Create(0, 0, 0, 255); //black
+	red = CP_Color_Create(200, 50, 50, 255); //red
+	green = CP_Color_Create(50, 200, 50, 255); //green
+	plat = CP_Color_Create(255, 150, 150, 255); //platform colour
+	stamina = CP_Color_Create(255, 255, 40, 255); //stamina colour
+
 	// Corner drawing
 	CP_Settings_RectMode(CP_POSITION_CORNER);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
+#pragma endregion
+
 }
 
 void Game_Update(void)
@@ -144,6 +175,11 @@ void Game_Update(void)
 	// getdt
 	float dt = CP_System_GetDt();
 
+	// get mouse coords
+	mouseX = CP_Input_GetMouseX();
+	mouseY = CP_Input_GetMouseY();
+	
+
 	// pause/resume game with Esc
 	if (CP_Input_KeyTriggered(KEY_ESCAPE) && isPaused == 0) {
 		isPaused = 1;
@@ -153,26 +189,18 @@ void Game_Update(void)
 		isPaused = 0;
 	}
 
-	// Timer UI
-	if (isPaused == 0) {
-		totalMinutes = totalMinutes;
-		totalSeconds += dt;
-		totalMillis += dt*100;
-		if (totalMillis >= 100) {
-			totalMillis = 0;
+	// Timer update
+	if (isPaused == 0 && isCleared == 0) {
+		timer.seconds += dt;
+		if (timer.seconds >= 60) {
+			timer.seconds = 0;
+			timer.minutes++;
 		}
+		timer.millis = (int)(timer.seconds * 100)%100;
 	}
 	
-	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(60);
-	char time[16] = { 0 };
-	if (totalSeconds >= 60) {
-		totalSeconds -= 60;
-		totalMinutes += 1;
-	}
-
 	// MOVEMENT 
-	/*---------------------------------------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Movement
 	// pause check
 	if (isPaused == 0) {
@@ -189,7 +217,7 @@ void Game_Update(void)
 
 		// movement logics
 		movement(&player, movestate, speed, dt);
-
+		printf("movex %f, movey %f\n", player.movex, player.movey);
 		// reset checks for jumping and entering
 		player.onplatform = 0;
 		player.withinx = 0;
@@ -230,7 +258,7 @@ void Game_Update(void)
 #pragma endregion
 
 	// RENDER
-	/*---------------------------------------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region RENDER
 	// Platforms
 	CP_Settings_Fill(plat);
@@ -238,21 +266,39 @@ void Game_Update(void)
 		DrawPlatform(i);
 	}
 
+	// Goal
+	CP_Settings_Fill(green);
+	CP_Graphics_DrawRect(goalx, goaly, 50, 50);
+
+	if (AreSquaresIntersecting(player.x - 15, player.y - 15, player.height + 30, player.width + 30, goalx, goaly, 50, 50)) {
+		CP_Settings_Fill(green);
+		CP_Settings_TextSize(100);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("You touched grass", width / 2, 50);
+		AddScore(&levelScore, 1000, &isCleared);
+		isCleared = 1;
+	}
+
 	// HAZARD DRAWING
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-	CP_Graphics_DrawTriangle(traps[0].x[0], traps[0].y[0], traps[0].x[1], traps[0].y[1], traps[0].x[2], traps[0].y[2]);
+	for (int i = 0; i < numberoftraps; ++i) {
+		CP_Graphics_DrawTriangle(traps[i].x[0], traps[i].y[0], traps[i].x[1], traps[i].y[1], traps[i].x[2], traps[i].y[2]);
+	}
 
 	// Player
 	CP_Image_Draw(player_sprite, player.x - 15, player.y - 15, player.width + 30, player.height + 30, 255);
 	// Stamina Bar
 	CP_Settings_Fill(stamina);
-	DrawStatBar(player.x - 15, player.y - 25, player.x + 35, player.y - 20, player.stamina, 100);
+	if (player.stamina <= 35.0f) {
+		CP_Settings_Fill(red);
+	}
+	DrawStatBar(player.x - 15, player.y - 30, player.x + 35, player.y - 23, player.stamina, 100);
 
 	// DEATHS DRAWING
 	CP_Settings_Fill(black);
 	CP_Settings_TextSize(50);
-	char deathcount[20] = { 0 };
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+	char deathcount[20] = { 0 };
 	if (deaths < 100) {
 		sprintf_s(deathcount, 20, "Deaths: %d", deaths);
 		CP_Font_DrawText(deathcount, 50, 50);
@@ -262,15 +308,50 @@ void Game_Update(void)
 	}
 
 	// TIMER DRAWING
-	sprintf_s(time, 16, "TIME: %02d:%02d:%02d", (int)totalMinutes, (int)totalSeconds, (int)totalMillis);
+	char time[16] = { 0 };
+	sprintf_s(time, 16, "TIME: %02d:%02d:%02d", (int)timer.minutes, (int)timer.seconds, (int)timer.millis);
 	CP_Font_DrawText(time, 1250, 100);
+
+	// SCORE DRAWING
+	char score[20] = { 0 };
+	sprintf_s(score, 20, "SCORE: %d", levelScore);
+	CP_Font_DrawText(score, 1250, 50);
 
 	// PAUSE PAGE
 	if (isPaused == 1) {
+		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Settings_Fill(pausebg);
-		CP_Graphics_DrawRect(0, 0, width, height);
+		CP_Graphics_DrawRect(width/2, height/2, width, height);
+		CP_Settings_Fill(plat);
+		CP_Graphics_DrawRect(width/2, height/2, 1200, 600);
 		CP_Settings_Fill(black);
-		CP_Font_DrawText("PAUSED", width / 2, 100);
+		CP_Settings_TextSize(150);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("PAUSED", width/2, 300);
+
+		CP_Settings_TextSize(100);
+		// draw resume button
+		TextBoxCreate(500, 2 * height / 3, 350, 200, "RESUME", red);
+		int ResumeClick = IsAreaClicked(500, 2 * height / 3, 350, 200, mouseX, mouseY); //if mouse is over button
+		if (ResumeClick) {
+			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+			CP_Graphics_DrawRect(500, 2 * height / 3, 350, 200);
+			if (CP_Input_MouseClicked()) { //if LMB1 pressed
+				isPaused = 0;
+			}
+		}
+
+		// draw quit button
+		TextBoxCreate(1100, 2 * height / 3, 350, 200, "QUIT", red);
+		int QuitClick = IsAreaClicked(1100, 2 * height / 3, 350, 200, mouseX, mouseY); //if mouse is over button
+		if (QuitClick) {
+			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+			CP_Graphics_DrawRect(1100, 2 * height / 3, 350, 200);
+			if (CP_Input_MouseClicked()) { //if LMB1 pressed
+				CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
+			}
+		}
+		CP_Settings_RectMode(CP_POSITION_CORNER);
 	}
 #pragma endregion
 

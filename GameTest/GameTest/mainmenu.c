@@ -28,8 +28,8 @@ void Main_Menu_Update(void)
 	int height = CP_System_GetWindowHeight();
 
 	//track pointer
-	float mouseX = CP_Input_GetMouseX();
-	float mouseY = CP_Input_GetMouseY();
+	mouseX = CP_Input_GetMouseX();
+	mouseY = CP_Input_GetMouseY();
 
 
 	//button color

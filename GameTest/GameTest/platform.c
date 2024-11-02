@@ -67,7 +67,11 @@ MoveState transition(Player* ply, MoveState movestate, float dt) {
 
 void movement(Player* ply, MoveState movestate, float speed, float dt) {
 	float accel = 3000.0f;
-	if (movestate == OnPlat) { // platformer
+	float accel2 = 1500.0f;
+	float speed2 = speed/2;
+
+	// OnPlat movement
+	if (movestate == OnPlat) {
 
 		// Gravity and terminal velocity
 		if (ply->movey < 1000.0f) {
@@ -95,15 +99,54 @@ void movement(Player* ply, MoveState movestate, float speed, float dt) {
 			ply->movex = 0;
 		}
 	}
-	if (movestate == InPlat) { // inside platform
-		ply->movex = 0; ply->movey = 0;
-		if (CP_Input_KeyDown(KEY_W)) { ply->movey = -speed / 2; };
-		if (CP_Input_KeyDown(KEY_A)) { ply->movex = -speed / 2; };
-		if (CP_Input_KeyDown(KEY_S)) { ply->movey = speed / 2; };
-		if (CP_Input_KeyDown(KEY_D)) { ply->movex = speed / 2; };
+	// InPlat movement
+	if (movestate == InPlat) {
+		// up
+		if (CP_Input_KeyDown(KEY_W)) {
+			if (ply->movey > -speed2) {
+				ply->movey -= accel2 * dt;
+			}
+		}
+		else if (ply->movey < 0) {
+			ply->movey += accel2 * dt;
+		}
+		// down
+		if (CP_Input_KeyDown(KEY_S)) {
+			if (ply->movey < speed2) {
+				ply->movey += accel2 * dt;
+			}
+		}
+		else if (ply->movey > 0) {
+			ply->movey -= accel2 * dt;
+		}
+		// left
+		if (CP_Input_KeyDown(KEY_A)) {
+			if (ply->movex > -speed2) {
+				ply->movex -= accel2 * dt;
+			}
+		}
+		else if (ply->movex < 0) {
+			ply->movex += accel2 * dt;
+		}
+		// right
+		if (CP_Input_KeyDown(KEY_D)) {
+			if (ply->movex < speed2) {
+				ply->movex += accel2 * dt;
+			}
+		}
+		else if (ply->movex > 0) {
+			ply->movex -= accel2 * dt;
+		}
+		// idle brake
+		if (!(CP_Input_KeyDown(KEY_W) || CP_Input_KeyDown(KEY_S))&& (ply->movey <= 50.f && ply->movey >= -50.f)) {
+			ply->movey = 0;
+		}
+		if (!(CP_Input_KeyDown(KEY_A) || CP_Input_KeyDown(KEY_D)) && (ply->movex <= 50.f && ply->movex >= -50.f)) {
+			ply->movex = 0;
+		}
 	}
 
-	// Update movestate if InPlat/OnPlat
+	// Update movement only if InPlat/OnPlat, ignore transition
 	if (movestate == InPlat || movestate == OnPlat) {
 		ply->x += ply->movex * dt;
 		ply->y += ply->movey * dt;
