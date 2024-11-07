@@ -28,9 +28,10 @@ void LSelect_Init(void)
 
 	FILE* file = fopen("Assets/LevelSelect.txt", "r");
 	for (int i = 0; i < num_levels; i++) {
-		fscanf_s(file, "%d %d %d %d %d\n", &levels[i].level_no, &levels[i].isUnlocked, &levels[i].isCleared, &levels[i].score, &levels[i].time);
-		printf("%d %d %d %d %d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score, levels[i].time);
+		fscanf_s(file, "%d %d %d %d %d:%d:%d\n", &levels[i].level_no, &levels[i].isUnlocked, &levels[i].isCleared, &levels[i].score, &levels[i].time.minutes, &levels[i].time.seconds, &levels[i].time.millis);
+		printf("Level %1d, Unlocked: %1d, Cleared: %1d, Score: %06d, Time: %02d:%02d:%02d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score, levels[i].time.minutes, levels[i].time.seconds, levels[i].time.millis);
 	}
+	printf("---------------------------------------------------------------\n");
 	fclose(file);
 }
 
@@ -56,6 +57,10 @@ void LSelect_Update(void)
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Font_DrawText("LEVEL SELECT", width / 2, 100);
 
+	//display stats when hovering over each level button
+	char highScore[20] = { 0 };
+	char bestTime[20] = { 0 };
+
 	//level 1 button
 	if (levels[0].isUnlocked == 1 && levels[0].isCleared == 1) {
 		TextBoxCreate(width / 4, height / 3, 150, 150, "1", button_color_cleared);
@@ -71,9 +76,17 @@ void LSelect_Update(void)
 		if (L1Click) {
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 			CP_Graphics_DrawRect(width / 4, height / 3, 150, 150);
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+			CP_Settings_TextSize(100);
+			CP_Font_DrawText("LEVEL 1 STATS", width / 2, height / 2);
+			sprintf_s(highScore, 20, "HIGH SCORE: %d", levels[0].score);
+			CP_Font_DrawText(highScore, width / 2, 550);
+			sprintf_s(bestTime, 20, "BEST TIME: %02d:%02d:%02d", levels[0].time.minutes, levels[0].time.seconds, levels[0].time.millis);
+			CP_Font_DrawText(bestTime, width / 2, 650);
 			if (CP_Input_MouseClicked()) { //if LMB1 pressed
 				CP_Engine_SetNextGameState(L1_Init, L1_Update, L1_Exit); //go to game
 			}
+			CP_Settings_TextSize(150);
 		}
 	}
 
@@ -92,9 +105,17 @@ void LSelect_Update(void)
 		if (L2Click) {
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 			CP_Graphics_DrawRect(width / 4 + 200, height / 3, 150, 150);
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+			CP_Settings_TextSize(100);
+			CP_Font_DrawText("LEVEL 2 STATS", width / 2, height / 2);
+			sprintf_s(highScore, 20, "HIGH SCORE: %d", levels[1].score);
+			CP_Font_DrawText(highScore, width / 2, 550);
+			sprintf_s(bestTime, 20, "BEST TIME: %02d:%02d:%02d", levels[1].time.minutes, levels[1].time.seconds, levels[1].time.millis);
+			CP_Font_DrawText(bestTime, width / 2, 650);
 			if (CP_Input_MouseClicked()) { //if LMB1 pressed
 				CP_Engine_SetNextGameState(L1_Init, L1_Update, L1_Exit); //go to game
 			}
+			CP_Settings_TextSize(150);
 		}
 	}
 
@@ -113,9 +134,17 @@ void LSelect_Update(void)
 		if (L3Click) {
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 			CP_Graphics_DrawRect(width / 2, height / 3, 150, 150);
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+			CP_Settings_TextSize(100);
+			CP_Font_DrawText("LEVEL 3 STATS", width / 2, height / 2);
+			sprintf_s(highScore, 20, "HIGH SCORE: %d", levels[2].score);
+			CP_Font_DrawText(highScore, width / 2, 550);
+			sprintf_s(bestTime, 20, "BEST TIME: %02d:%02d:%02d", levels[2].time.minutes, levels[2].time.seconds, levels[2].time.millis);
+			CP_Font_DrawText(bestTime, width / 2, 650);
 			if (CP_Input_MouseClicked()) { //if LMB1 pressed
 				CP_Engine_SetNextGameState(L1_Init, L1_Update, L1_Exit); //go to game
 			}
+			CP_Settings_TextSize(150);
 		}
 	}
 
@@ -134,9 +163,17 @@ void LSelect_Update(void)
 		if (L4Click) {
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 			CP_Graphics_DrawRect(width / 2 + 200, height / 3, 150, 150);
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+			CP_Settings_TextSize(100);
+			CP_Font_DrawText("LEVEL 4 STATS", width / 2, height / 2);
+			sprintf_s(highScore, 20, "HIGH SCORE: %d", levels[3].score);
+			CP_Font_DrawText(highScore, width / 2, 550);
+			sprintf_s(bestTime, 20, "BEST TIME: %02d:%02d:%02d", levels[3].time.minutes, levels[3].time.seconds, levels[3].time.millis);
+			CP_Font_DrawText(bestTime, width / 2, 650);
 			if (CP_Input_MouseClicked()) { //if LMB1 pressed
 				CP_Engine_SetNextGameState(L1_Init, L1_Update, L1_Exit); //go to game
 			}
+			CP_Settings_TextSize(150);
 		}
 	}
 
@@ -155,18 +192,26 @@ void LSelect_Update(void)
 		if (L5Click) {
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 			CP_Graphics_DrawRect(3 * width / 4, height / 3, 150, 150);
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+			CP_Settings_TextSize(100);
+			CP_Font_DrawText("LEVEL 5 STATS", width / 2, height / 2);
+			sprintf_s(highScore, 20, "HIGH SCORE: %d", levels[4].score);
+			CP_Font_DrawText(highScore, width / 2, 550);
+			sprintf_s(bestTime, 20, "BEST TIME: %02d:%02d:%02d", levels[4].time.minutes, levels[4].time.seconds, levels[4].time.millis);
+			CP_Font_DrawText(bestTime, width / 2, 650);
 			if (CP_Input_MouseClicked()) { //if LMB1 pressed
 				CP_Engine_SetNextGameState(L1_Init, L1_Update, L1_Exit); //go to game
 			}
+			CP_Settings_TextSize(150);
 		}
 	}
 
 	//back to main menu button
-	TextBoxCreate(width / 2, 2 * height / 3, 500, 150, "BACK", button_color);
-	int ExitClick = IsAreaClicked(width / 2, 2 * height / 3, 500, 150, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(width / 2, 800, 500, 150, "BACK", button_color);
+	int ExitClick = IsAreaClicked(width / 2, 800, 500, 150, mouseX, mouseY); //if mouse is over button
 	if (ExitClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(width / 2, 2 * height / 3, 500, 150);
+		CP_Graphics_DrawRect(width / 2, 800, 500, 150);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
 			CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit); //return to main menu
 		}

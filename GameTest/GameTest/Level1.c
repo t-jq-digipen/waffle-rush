@@ -256,12 +256,17 @@ void L1_Update(void)
 		player.y = CP_Math_ClampFloat(player.y, 0, height - player.height);
 
 		// reset with R or touch ground while movestate OnPlat
+<<<<<<< Updated upstream
 		if (CP_Input_KeyTriggered(KEY_R) || ((player.y >= height - player.height) && movestate == OnPlat) || (player.stamina == 0)) {
 			player.x = spawnx;
 			player.y = spawny;
 			movestate = OnPlat;
 			player.movey = 0;
 			deaths++;
+=======
+		if ((CP_Input_KeyTriggered(KEY_R) || ((player.y >= height - player.height) && movestate == OnPlat) || (player.stamina == 0)) && isCleared == 0) {
+			Reset_Player(&player, &movestate, &deaths);
+>>>>>>> Stashed changes
 		}
 
 		// animation timer update
@@ -287,7 +292,7 @@ void L1_Update(void)
 
 	FILE* file2 = fopen("Assets/LevelSelect.txt", "r");
 	for (int i = 0; i < num_levels; i++) {
-		fscanf_s(file2, "%d %d %d %d %d\n", &levels[i].level_no, &levels[i].isUnlocked, &levels[i].isCleared, &levels[i].score, &levels[i].time);
+		fscanf_s(file2, "%d %d %d %d %02d:%02d:%02d\n", &levels[i].level_no, &levels[i].isUnlocked, &levels[i].isCleared, &levels[i].score, &levels[i].time.minutes, &levels[i].time.seconds, &levels[i].time.millis);
 	}
 	fclose(file2);
 
@@ -304,10 +309,23 @@ void L1_Update(void)
 		if (levelScore > levels[levelNumber - 1].score) {
 			levels[levelNumber - 1].score = levelScore;
 		}
+
+		// update best time if current time is less than previous best time
+		if ((levels[levelNumber - 1].time.minutes == 0 && levels[levelNumber - 1].time.seconds == 0 &&
+			levels[levelNumber - 1].time.millis == 0) ||
+			(timer.minutes < levels[levelNumber - 1].time.minutes) ||
+			(timer.minutes == levels[levelNumber - 1].time.minutes && timer.seconds < levels[levelNumber - 1].time.seconds) ||
+			(timer.minutes == levels[levelNumber - 1].time.minutes && timer.seconds == levels[levelNumber - 1].time.seconds && timer.millis < levels[levelNumber - 1].time.millis)
+			) {
+			levels[levelNumber - 1].time.minutes = (int)timer.minutes;
+			levels[levelNumber - 1].time.seconds = (int)timer.seconds;
+			levels[levelNumber - 1].time.millis = (int)timer.millis;
+		}
+
 		// update the values in LevelSelect.txt
 		FILE* file2= fopen("Assets/LevelSelect.txt", "w");
 		for (int i = 0; i < num_levels; i++) {
-			fprintf_s(file2, "%d %d %d %d %d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score, levels[i].time);
+			fprintf_s(file2, "%d %d %d %d %02d:%02d:%02d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score, levels[i].time.minutes, levels[i].time.seconds, levels[i].time.millis);
 		}
 		fclose(file2);
 	}
