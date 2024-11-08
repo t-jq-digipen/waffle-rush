@@ -28,8 +28,8 @@ void LSelect_Init(void)
 
 	FILE* file = fopen("Assets/LevelSelect.txt", "r");
 	for (int i = 0; i < num_levels; i++) {
-		fscanf_s(file, "%d %d %d\n", &levels[i].level_no, &levels[i].isUnlocked, &levels[i].isCleared);
-		// printf("%d %d %d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared);
+		fscanf_s(file, "%d %d %d %d %d\n", &levels[i].level_no, &levels[i].isUnlocked, &levels[i].isCleared, &levels[i].score, &levels[i].time);
+		printf("%d %d %d %d %d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score, levels[i].time);
 	}
 	fclose(file);
 }

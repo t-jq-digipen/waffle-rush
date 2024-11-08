@@ -10,7 +10,6 @@
 //---------------------------------------------------------
 
 #include "mainmenu.h"
-#include "game.h"
 #include "utils.h"
 #include "platform.h"
 

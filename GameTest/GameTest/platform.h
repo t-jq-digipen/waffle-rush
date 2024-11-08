@@ -10,8 +10,9 @@
 //---------------------------------------------------------
 
 #pragma once
-#include "utils.h"
-#include "hazard.h"
+#include "mainmenu.h"
+#include "platform.h"
+#include "Level2.h"
 
 
 #define max_coords 16
@@ -36,11 +37,13 @@ float spawnx, spawny, goalx, goaly; // spawn and goal position
 int isPaused; // check if game paused
 int isCleared; // check if level cleared (player touches goal)
 int levelScore; // level score
+int highScore; // level high score
+int levelNumber; // level number
 
 // Graphics
 CP_Image player_sprite, transition_sprite;
 
-int player_sprite_x, player_sprite_y;
+float player_sprite_x, player_sprite_y;
 float transit_sprite_x, transit_sprite_y;
 
 // Anim timer
@@ -48,7 +51,6 @@ float transit_anim;
 
 
 CP_Font text;
-int sprite_x, sprite_y;
 CP_Color bg, pausebg, black, red, green, plat, stamina; //colors
 
 
@@ -177,8 +179,8 @@ CP_Color bg, pausebg, black, red, green, plat, stamina; //colors
 	// MOVEMENT AND MOVESTATE LOGIC
 	#pragma region Movement and movestate
 		// set movestate
-		int start_transition(Player* ply, MoveState movestate);
-		MoveState transition(Player* ply, MoveState, float dt);
+		void start_transition(Player* player, MoveState* movestate);
+		void end_transition(Player* player, MoveState* movestate);
 		// platformer and in platform movements
 		void movement(Player* p, MoveState movestate, float speed, float dt);
 		#pragma endregion
@@ -211,12 +213,16 @@ CP_Color bg, pausebg, black, red, green, plat, stamina; //colors
 
 		void CollOnPlatforms(int plat_index, platform plt, Player* p, Player ply);
 	#pragma endregion 
+	
+	// Reset Player
+	void Reset_Player(Player* player, MoveState* movestate, int* deaths);
 
 	// Draw Platforms
 	void DrawPlatform(int plat_index);
 
 	// Draw Player
-	void Draw_Player(CP_Image player_sprite, Player player, float* spr_x, float* spr_y);
+	void Draw_Player(CP_Image player_sprite, Player player, MoveState movestate);
 
-	void Draw_Player_Transitioning_Sprite(Player player, float transit_time, MoveState movestate);
+	void Draw_Player_Transitioning_Sprite(Player player);
+
 #pragma endregion

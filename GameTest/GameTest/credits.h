@@ -1,4 +1,3 @@
-#pragma once
 //---------------------------------------------------------
 // file:	credits.h
 // author:	AVID WAFFLE ENJOYERS
@@ -8,9 +7,8 @@
 //
 // Copyright © 2020 DigiPen, All rights reserved.
 //---------------------------------------------------------
-
+#pragma once
 #include "mainmenu.h"
-#include "game.h"
 #include "utils.h"
 
 #define name_length 20

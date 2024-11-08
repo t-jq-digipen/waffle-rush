@@ -48,3 +48,6 @@ int SquareTriangleCollide(float squarex, float squarey, float squarewidth, float
 
 // update score
 void AddScore(int *totalScore, int addScore, int *isCleared);
+
+// score increment animation
+int IncrementScore(int startScore, int endScore, float* timeElapsed, float dt);

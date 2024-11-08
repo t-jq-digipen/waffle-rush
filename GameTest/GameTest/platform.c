@@ -20,54 +20,40 @@
 // MOVEMENT AND MOVESTATE LOGIC
 #pragma region Movement and movestate
 // 
-int start_transition(Player* ply, MoveState movestate) {
-	if (movestate == OnPlat && ply->onplatform == 1 && ply->withinx == 1) {
-		movestate = EnterPlat;
-		ply->movex = 0;
+void start_transition(Player* player, MoveState* movestate) {
+	if (*movestate == OnPlat && player->onplatform == 1 && player->withinx == 1) {
+		*movestate = EnterPlat;
+		player->movex = 0;
 	}
-	else if (movestate == InPlat && ply->y > 200 && ply->leaveplatform == 1) {
-		movestate = ExitPlat;
-		ply->movex = 0;
+	else if (*movestate == InPlat && player->y > 200 && player->leaveplatform == 1) {
+		*movestate = ExitPlat;
+		player->y -= 50;
+		player->movex = 0;
 	}
-	if (movestate == EnterPlat || movestate == ExitPlat) {
-		ply->transition_time = 0;
+	if (*movestate == EnterPlat || *movestate == ExitPlat) {
+		player->transition_time = 0;
 	}
-	return movestate;
 }
 
-MoveState transition(Player* ply, MoveState movestate, float dt) {
-
-	// Alter player y value while transitioning
-	if (ply->transition_time < 1) {
-		// For first half of transition time, increase speed, else reduce speed
-		ply->movey = (ply->transition_time < 0.5f) ? 400 * ply->transition_time : 400.0f - 400 * ply->transition_time;
-
-		// If entering platform, += speed
-		if ((movestate == EnterPlat)) {
-			ply->y += ply->movey * dt;
-		}
-		// If exiting platform, -= speed
-		if ((movestate == ExitPlat)) {
-			ply->y -= ply->movey * dt;
-		}
-		// Update transit timer such that timer completes in 0.5s
-		ply->transition_time += 2 * dt;
+void end_transition(Player* player, MoveState* movestate) {
+	switch (*movestate) {
+	case EnterPlat:
+		player->y += 50;
+		*movestate = InPlat;
+		player->state = Idle;
+		player->direction = InDown;
+		break;
+	case ExitPlat:
+		*movestate = OnPlat;
+		player->state = Idle;
+		player->direction = OnRight;
+		player->onplatform = 1;
+		break;
+	case InPlat:
+	case OnPlat:
+		player->transition_time = 13;
+		break;
 	}
-
-	// End of transitioning, return movestate to continue movement
-	if (ply->transition_time >= 1) {
-		if (movestate == EnterPlat) {
-			ply->state = Idle;
-			ply->direction = InDown;
-			return InPlat;
-		}
-		if (movestate == ExitPlat) {
-			ply->state = Idle;
-			ply->direction = OnRight;
-			return OnPlat;
-		}
-	}
-	return movestate;
 }
 
 void movement(Player* ply, MoveState movestate, float speed, float dt) {
@@ -232,6 +218,11 @@ void movement(Player* ply, MoveState movestate, float speed, float dt) {
 		ply->x += ply->movex * dt;
 		ply->y += ply->movey * dt;
 	}
+
+	// reset checks for jumping and entering
+	ply->onplatform = 0;
+	ply->withinx = 0;
+	ply->leaveplatform = 0;
 }
 #pragma endregion
 
@@ -491,7 +482,23 @@ void movement(Player* ply, MoveState movestate, float speed, float dt) {
 			}// end if collision check
 		}
 	}
+
+	void Reset_Player(Player* player, MoveState* movestate, int* deaths) {
+		player->x = spawnx;
+		player->y = spawny;
+		*movestate = OnPlat;
+		player->state = Idle;
+		player->direction = OnRight;
+		player->movey = 0;
+		*deaths += 1;
+	}
 #pragma endregion
+
+
+
+// RENDER
+/*---------------------------------------------------------------------------------------------------*/
+#pragma region Render
 
 void DrawPlatform(int plat_index) {
 	CP_Graphics_BeginShape();
@@ -501,69 +508,81 @@ void DrawPlatform(int plat_index) {
 	CP_Graphics_EndShape();
 }
 
-void Draw_Player(CP_Image player_sprite, Player player, float* spr_x, float* spr_y) {
+void Draw_Player(CP_Image player_sprite, Player player, MoveState movestate) {
+	// Normal Player
+	float sprite_x, sprite_y;
 	float rot = 0;
-	switch (player.direction) {
-	case OnLeft:
-		*spr_y = 0;
-		break;
-	case OnRight:
-		*spr_y = 180;
-		break;
-	case InUp:
-		*spr_y = 360;
-		rot = 0;
-		break;
-	case InUpLeft:
-		*spr_y = 360;
-		rot = 315;
-		break;
-	case InLeft:
-		*spr_y = 360;
-		rot = 270;
-		break;
-	case InDownLeft:
-		*spr_y = 360;
-		rot = 225;
-		break;
-	case InDown:
-		*spr_y = 360;
-		rot = 180;
-		break;
-	case InDownRight:
-		*spr_y = 360;
-		rot = 135;
-		break;
-	case InRight:
-		*spr_y = 360;
-		rot = 90;
-		break;
-	case InUpRight:
-		*spr_y = 360;
-		rot = 45;
-		break;
+	if (movestate == InPlat || movestate == OnPlat) {
+		switch (player.direction) {
+		case OnLeft:
+			sprite_y = 0;
+			break;
+		case OnRight:
+			sprite_y = 180;
+			break;
+		case InUp:
+			sprite_y = 360;
+			rot = 0;
+			break;
+		case InUpLeft:
+			sprite_y = 360;
+			rot = 315;
+			break;
+		case InLeft:
+			sprite_y = 360;
+			rot = 270;
+			break;
+		case InDownLeft:
+			sprite_y = 360;
+			rot = 225;
+			break;
+		case InDown:
+			sprite_y = 360;
+			rot = 180;
+			break;
+		case InDownRight:
+			sprite_y = 360;
+			rot = 135;
+			break;
+		case InRight:
+			sprite_y = 360;
+			rot = 90;
+			break;
+		case InUpRight:
+			sprite_y = 360;
+			rot = 45;
+			break;
+		}
+		switch (player.state) {
+		case Idle:
+			sprite_x = (player.anim < 10) ? 0 : 180;
+			break;
+		case Running:
+		case Crawling:
+			sprite_x = ((int)player.anim % 2 == 0) ? 360 : 540;
+			break;
+		case Jumping:
+			sprite_x = 720;
+			break;
+		}
+		CP_Image_DrawSubImageAdvanced(player_sprite, player.x - 15, player.y - 15, player.width + 30, player.height + 30, sprite_x + 5, sprite_y + 5, sprite_x + 170, sprite_y + 170, 255, rot);
 	}
-	switch (player.state) {
-	case Idle:
-		*spr_x = (player.anim < 10) ? 0 : 180;
-		break;
-	case Running:
-	case Crawling:
-		*spr_x = ((int)player.anim % 2 == 0) ? 360 : 540;
-		break;
-	case Jumping:
-		*spr_x = 720;
-		break;
+	else 
+	{
+		sprite_y = (movestate == EnterPlat) ? 360 : 0;
+
+		sprite_x = ((int)player.transition_time / 1) * 180;
+		CP_Image_DrawSubImage(transition_sprite, player.x - 15, player.y - 15, player.width + 30, (player.height + 30) * 2, sprite_x + 5, sprite_y + 5, sprite_x + 170, sprite_y + 350, 255);
 	}
-	CP_Image_DrawSubImageAdvanced(player_sprite, player.x - 15, player.y - 15, player.width + 30, player.height + 30, *spr_x+5, *spr_y+5, *spr_x + 170, *spr_y + 170, 255, rot);
 }
 
-void Draw_Player_Transitioning_Sprite(Player player, float transit_time, MoveState movestate) {
+void Draw_Player_Transitioning_Sprite(Player player) {
 	float transit_sprite_x, transit_sprite_y;
 	transit_sprite_y = (movestate == EnterPlat) ? 360 : 0;
 
-	transit_sprite_x = ((int)transit_time / 1) * 180;
-	if (movestate == EnterPlat || movestate == ExitPlat) {
-		CP_Image_DrawSubImage(transition_sprite, player.x - 15, player.y - 15, player.width + 30, (player.height + 30) * 2, transit_sprite_x + 5, transit_sprite_y + 5, transit_sprite_x + 170, transit_sprite_y + 350, 255);
-	}
+	transit_sprite_x = ((int)player.transition_time / 1) * 180;
+	CP_Image_DrawSubImage(transition_sprite, player.x - 15, player.y - 15, player.width + 30, (player.height + 30) * 2, transit_sprite_x + 5, transit_sprite_y + 5, transit_sprite_x + 170, transit_sprite_y + 350, 255);
+
 }
+
+#pragma endregion

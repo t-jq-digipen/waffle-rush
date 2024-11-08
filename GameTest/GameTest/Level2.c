@@ -8,10 +8,13 @@
 // Copyright © 2020 DigiPen, All rights reserved.
 //---------------------------------------------------------
 
-#include "Level1.h"
+#include "Level2.h"
+#include "platform.h"
 #include "camera.h"
-Camera camera; //allows your to work with anything that the camera requires
+#include "LevelSelect.h"
 
+
+Camera camera; //allows your to work with anything that the camera requires
 
 float screenX; //full screen width
 float screenY; //full screen height

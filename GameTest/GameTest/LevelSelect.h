@@ -1,17 +1,18 @@
 //---------------------------------------------------------
-// file:	game.h
-// author:	TAN JUN QUAN
-// email:	t.junquan@digipen.edu
+// file:	LevelSelect.h
+// author:	AVID WAFFLE ENJOYERS
+// email:	-
 //
-// brief:	Declarations of game stage
+// brief:   Declaration of various level stages and features
 //
-// Copyright © 2020 DigiPen, All rights reserved.
+// Copyright ï¿½ 2020 DigiPen, All rights reserved.
 //---------------------------------------------------------
 
 #pragma once
-#include "game.h"
-#include "Level1.h"
-#include "Level2.h"
+
+//#include "Level2.h"
+#include "mainmenu.h"
+#include "platform.h"
 
 // leevl struct
 typedef struct level {
@@ -25,3 +26,17 @@ typedef struct level {
 void LSelect_Init(void);
 void LSelect_Update(void);
 void LSelect_Exit(void);
+
+
+void Game_Init(void);
+void Game_Update(void);
+void Game_Exit(void);
+
+
+void L1_Init(void);
+void L1_Update(void);
+void L1_Exit(void);
+
+void L2_Init(void);
+void L2_Update(void);
+void L2_Exit(void);

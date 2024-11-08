@@ -57,7 +57,8 @@ void Main_Menu_Update(void)
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 		CP_Graphics_DrawRect(3 * width / 4, height / 3, 150, 150);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
-			CP_Engine_SetNextGameState(Game_Init, Game_Update, Game_Exit); //go to test stage
+			CP_Engine_SetNextGameState(
+				, Game_Update, Game_Exit); //go to test stage
 		}
 	}
 
