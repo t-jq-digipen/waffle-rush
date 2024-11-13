@@ -244,16 +244,15 @@ void L1_Init(void)
 	// CAMERA INIT
 		/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Camera Init
-	float screenX = CP_System_GetWindowWidth();
-	float screenY = CP_System_GetWindowHeight();
 
-	camera.limitleftx = screenX * 1.0f / 10.0f; //
-	camera.limitrightx = screenX * 9.0f / 10.0f; //
-	camera.limittop = screenY * 0.3f; //
-	camera.limitbase = screenY * 0.8f; //  
+	camera.limitleftx = width * 1.0f / 10.0f; //
+	camera.limitrightx = width * 9.0f / 10.0f; //
+	camera.limittop = height * 0.3f; //
+	camera.limitbase = height * 0.8f; //  
 	camera.width = camera.limitrightx - camera.limitleftx; //
 	camera.height = camera.limitbase - camera.limittop; //since base is a bigger number than the top number.
 	camera.worldshiftx = 0;
+	camera.worldshifty = 0;
 
 #pragma endregion
 	//CP_System_SetFrameRate(30);
@@ -432,7 +431,7 @@ void L1_Update(void)
 		printf("limitleftx %f| limitrightx %f\n", camera.limitleftx, camera.limitrightx);
 		CP_Settings_NoFill();
 		CP_Settings_RectMode(CP_POSITION_CORNER);
-		CP_Graphics_DrawRect(camera.limitleftx - camera.worldshiftx, camera.limittop, camera.width, camera.height); //code for rectangle
+		CP_Graphics_DrawRect(camera.limitleftx - camera.worldshiftx, camera.limittop - camera.worldshifty, camera.width, camera.height); //code for rectangle
 
 
 #pragma endregion
@@ -451,14 +450,14 @@ void L1_Update(void)
 
 		// Goal
 		if (!isCleared) {
-			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly, 100, 100, 0, 0, 32, 32, 255);
+			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, 0, 0, 32, 32, 255);
 		}
 		else {
 			if (clear_timer <= 3) {
 				clear_timer += 6 * dt;
 			}
 			int sprite_x = 32 + (32 * (int)clear_timer);
-			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly, 100, 100, sprite_x, 0, sprite_x + 32, 32, 255);
+			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, sprite_x, 0, sprite_x + 32, 32, 255);
 		}
 
 		if (AreSquaresIntersecting(player.x - 15, player.y - 15, player.height + 30, player.width + 30, goalx, goaly, 50, 50)) {
@@ -498,7 +497,7 @@ void L1_Update(void)
 		// Wall
 		CP_Settings_Fill(black);
 		for (int i = 0; i < numwalls; i++) {
-			CP_Graphics_DrawRect(walls[i].x1+15-camera.worldshiftx, walls[i].y1+15, walls[i].w-30, walls[i].h-30);
+			CP_Graphics_DrawRect(walls[i].x1+15-camera.worldshiftx, walls[i].y1+15 - camera.worldshifty, walls[i].w-30, walls[i].h-30);
 		}
 
 		//CRUSHER MOVEMENT
@@ -529,12 +528,12 @@ void L1_Update(void)
 			{
 			case 0:
 			{
-				CP_Graphics_DrawTriangle(traps[i].x[0]-camera.worldshiftx, traps[i].y[0], traps[i].x[1] - camera.worldshiftx, traps[i].y[1], traps[i].x[2] - camera.worldshiftx, traps[i].y[2]);
+				CP_Graphics_DrawTriangle(traps[i].x[0]-camera.worldshiftx, traps[i].y[0] - camera.worldshifty, traps[i].x[1] - camera.worldshiftx, traps[i].y[1] - camera.worldshifty, traps[i].x[2] - camera.worldshiftx, traps[i].y[2] - camera.worldshifty);
 				break;
 			}
 			case 1:
 			{
-				CP_Graphics_DrawRect(traps[i].x[0]-camera.worldshiftx, traps[i].y[0], traps[i].x[1] - traps[i].x[0], traps[i].y[2] - traps[i].y[0]);
+				CP_Graphics_DrawRect(traps[i].x[0]-camera.worldshiftx, traps[i].y[0] - camera.worldshifty, traps[i].x[1] - traps[i].x[0], traps[i].y[2] - traps[i].y[0]);
 				break;
 			}
 
@@ -553,8 +552,9 @@ void L1_Update(void)
 			if (player.stamina <= 35.0f) {
 				CP_Settings_Fill(red);
 			}
-			DrawStatBar(player.x - 15 - camera.worldshiftx, player.y - 30, player.x + 35 - camera.worldshiftx, player.y - 23, player.stamina, 100);
+			DrawStatBar(player.x - 15 - camera.worldshiftx, player.y - 30 - camera.worldshifty, player.x + 35 - camera.worldshiftx, player.y - 23 - camera.worldshifty, player.stamina, 100);
 		}
+
 		// DEATHS DRAWING
 		CP_Settings_Fill(black);
 		CP_Settings_TextSize(50);

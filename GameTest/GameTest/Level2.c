@@ -244,13 +244,11 @@ void L2_Init(void)
 	// CAMERA INIT
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Camera Init
-	float screenX = CP_System_GetWindowWidth();
-	float screenY = CP_System_GetWindowHeight();
 	
-	camera.limitleftx = screenX * 1.0f / 10.0f; //
-	camera.limitrightx = screenX * 4.0f / 10.0f; //
-	camera.limittop = screenY * 0.65f; //
-	camera.limitbase = screenY * 0.8f; //  
+	camera.limitleftx = width * 1.0f / 10.0f; //
+	camera.limitrightx = width * 9.0f / 10.0f; //
+	camera.limittop = height * 0.3f; //
+	camera.limitbase = height * 0.8f; //  
 	camera.width = camera.limitrightx - camera.limitleftx; //
 	camera.height = camera.limitbase - camera.limittop; //since base is a bigger number than the top number.
 	camera.worldshiftx = 0;
@@ -555,8 +553,9 @@ void L2_Update(void)
 			if (player.stamina <= 35.0f) {
 				CP_Settings_Fill(red);
 			}
-			DrawStatBar(player.x - 15-camera.worldshiftx, player.y - 30, player.x + 35 - camera.worldshiftx, player.y - 23, player.stamina, 100);
+			DrawStatBar(player.x - 15 - camera.worldshiftx, player.y - 30 - camera.worldshifty, player.x + 35 - camera.worldshiftx, player.y - 23 - camera.worldshifty, player.stamina, 100);
 		}
+
 		// DEATHS DRAWING
 		CP_Settings_Fill(black);
 		CP_Settings_TextSize(50);
