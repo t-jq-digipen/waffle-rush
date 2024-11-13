@@ -9,6 +9,7 @@
 //---------------------------------------------------------
 
 #include "LevelSelect.h"
+#include "camera.h"
 
 #define num_levels 5
 level levels[num_levels];
@@ -247,14 +248,15 @@ void L2_Init(void)
 	float screenY = CP_System_GetWindowHeight();
 	
 	camera.limitleftx = screenX * 1.0f / 10.0f; //
-	camera.limitrightx = screenX * 9.0f / 10.0f; //
-	camera.limittop = screenY * 0.3f; //
+	camera.limitrightx = screenX * 4.0f / 10.0f; //
+	camera.limittop = screenY * 0.65f; //
 	camera.limitbase = screenY * 0.8f; //  
 	camera.width = camera.limitrightx - camera.limitleftx; //
 	camera.height = camera.limitbase - camera.limittop; //since base is a bigger number than the top number.
 	camera.worldshiftx = 0;
 	camera.worldshifty = 0;
 
+	//void reset_camera(camera);
 
 
 #pragma endregion
@@ -369,7 +371,7 @@ void L2_Update(void)
 			jump(&player);
 
 			// window clamps (eventually World Clamps)
-			player.x = CP_Math_ClampFloat(player.x, 0, 2600);
+			//player.x = CP_Math_ClampFloat(player.x, 0, 2600);
 			if (player.y + player.height > height || player.y < 0) {
 				player.movey = 0;
 			}

@@ -47,3 +47,15 @@ void playerCamColl(Player *player, Camera* camera) {
 }
 
 
+
+void reset_camera(Camera* camera) {
+	camera->limitleftx = 0;
+	camera->limitrightx = 0;
+	camera->limittop = 0;
+	camera->limitbase = 0;
+	camera->width = 0;
+	camera->height = 0;
+	camera->worldshiftx = 0;
+	camera->worldshifty = 0;
+}
+

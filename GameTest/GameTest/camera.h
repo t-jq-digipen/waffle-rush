@@ -30,4 +30,6 @@ typedef struct camera {
 
 Camera camera;
 
+void reset_camera(Camera* camera);
+
 //void playerCamColl(Player* player, Camera* camera);
