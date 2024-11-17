@@ -27,6 +27,16 @@ typedef enum MoveState {
 
 MoveState movestate;
 
+typedef enum LevelState {
+	NotPaused,
+	Paused,
+	InOptions,
+	InQuit,
+	Cleared
+} LevelState;
+
+LevelState levelstate;
+
 // Level Variables
 int numplats;
 int deaths;

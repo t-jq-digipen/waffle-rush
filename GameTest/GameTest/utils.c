@@ -11,6 +11,7 @@
 
 #pragma once
 #include "utils.h"
+#include "platform.h"
 
 // check if a position is within a rectangle
 //
@@ -159,8 +160,8 @@ int SquareTriangleCollide (float squarex, float squarey, float squarewidth, floa
 	return 0;
 }
 
-void AddScore(int *totalScore, int addScore, int *isCleared) {
-	if (!*isCleared) {
+void AddScore(int *totalScore, int addScore, LevelState *levelstate) {
+	if (*levelstate != Cleared) {
 		*totalScore += addScore;
 	}
 }

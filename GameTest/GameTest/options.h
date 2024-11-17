@@ -12,11 +12,6 @@
 #include "mainmenu.h"
 #include "utils.h"
 
-//typedef struct options {
-//	float bgm_vol;
-//	float se_vol;
-//} options;
-
 void Options_Init(void);
 void Options_Update(void);
 void Options_Exit(void);
