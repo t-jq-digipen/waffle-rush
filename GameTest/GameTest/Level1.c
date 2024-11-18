@@ -79,6 +79,7 @@ void L1_Init(void)
 	// read how many platforms in level
 	fscanf_s(PlatformFile, "%d", &numplats);
 
+	printf("numplats %d", numplats);
 	// plat_index - platform index
 	// plat_coord_index - platform coordinate index
 	int plat_index = 0; int plat_coord_index = 0;
