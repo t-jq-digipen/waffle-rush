@@ -265,28 +265,23 @@ void MainMenu1_Init(void)
 #pragma endregion
 
 #pragma region Level Transition Inits
+	//scaler1-4 sets the level transition effect
 	levelEnded = start;
 	scaler1 = (spawn.x + player.width / 2) - camera.worldshiftx;
 	scaler2 = (spawn.x + player.width / 2) - camera.worldshiftx;
 	scaler3 = (spawn.y + player.height / 2) - camera.worldshifty;
 	scaler4 = (spawn.y + player.height / 2) - camera.worldshifty;
 
+	//sets coords to detect when player warps through level select platform
 	level1.posx = 400;
 	level1.posy = 1000;
-	level1.height = 100;
-	level1.width = 200;
-
 	level2.posx = 800;
 	level2.posy = 1000;
-	level2.height = 100;
-	level2.width = 200;
-
 	level3.posx = 1200;
 	level3.posy = 1000;
-	level3.height = 100;
-	level3.width = 200;
+	level1.height = level2.height = level3.height = 100;
+	level1.width = level2.width = level3.width = 200;
 #pragma endregion
-
 }
 
 void MainMenu1_Update(void)
@@ -809,8 +804,6 @@ void MainMenu1_Update(void)
 
 	if (CP_Input_KeyTriggered(KEY_P)) {
 		levelEnded = end;
-		playerLastX = player.x;
-		playerLastY = player.y;
 	}
 	if (CP_Input_KeyDown(KEY_O)) {
 		levelEnded = start;
