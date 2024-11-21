@@ -41,6 +41,17 @@ typedef enum LevelState {
 
 LevelState levelstate;
 
+//audio
+typedef struct Audio {
+	int playing;
+	float duration;
+}Audio;
+
+Audio audio;
+
+void play_music(Audio *audio,float seconds, CP_Sound songname);
+//void stop_music(Audio* audio, CP_Sound songname);
+
 // Level Variables
 int numplats;
 int numcheckpoints;

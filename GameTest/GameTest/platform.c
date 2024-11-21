@@ -231,6 +231,33 @@ void movement(Player* ply, MoveState movestate, float speed, float dt) {
 	}
 }
 
+
+
+void play_music(Audio *audio, float seconds, CP_Sound songname) {
+
+	if (audio->playing == 0) {
+		CP_Sound_Play(songname); 
+		audio->playing = 1;       
+		audio->duration = seconds;         
+	}
+
+	if (audio->playing == 1) {
+		audio->duration -= 1 * CP_System_GetDt();
+		printf("%lf\n", audio->duration);
+	}
+	if (audio->duration <= 0) {
+		audio->playing = 0;
+		audio->duration = seconds;
+	}
+
+}
+//stop music after level;
+//void stop_music(Audio* audio, CP_Sound songname) {
+//	audio->playing = 0;
+//	audio->duration = 7;
+// CP_Sound_Free(songname);
+//}
+
 void jump(Player* player, MoveState movestate) {
 	if (CP_Input_KeyTriggered(KEY_SPACE) && movestate == OnPlat) {
 		if (((player->onplatform == 0) && player->state == Sliding && player->walljump == 1)) {
