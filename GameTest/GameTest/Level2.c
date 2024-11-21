@@ -86,7 +86,7 @@ void L2_Init(void)
 	Buff[invulBuff].height = 20; //draw
 	Buff[invulBuff].buffduration = 0; //seconds?
 	Buff[invulBuff].invulActive = 0;
-	Buff[invulBuff].resetTimer = 3;
+	Buff[invulBuff].resetTimer = 5;
 	
 
 	// PLATFORMS INITIALIZATION
@@ -500,7 +500,7 @@ void L2_Update(void)
 		}
 		else if ((buffstate & 0b100) && Buff[invulBuff].buffduration <= 0.00f) {
 			buffstate &= ~0b100;
-			Buff[invulBuff].buffduration = 3; //maybe can functionise these two to reset
+			Buff[invulBuff].buffduration = 5; //maybe can functionise these two to reset
 		}
 
 
@@ -518,7 +518,7 @@ void L2_Update(void)
 				Point B = { traps[trap_index].x[1], traps[trap_index].y[1] };
 				Point C = { traps[trap_index].x[2], traps[trap_index].y[2] };
 
-				if (check_square_triangle_collision(squareTopLeft, player.width, player.height, A, B, C)) {
+				if (check_square_triangle_collision(squareTopLeft, player.width, player.height, A, B, C) && !((buffstate & 0b100) && Buff[invulBuff].buffduration > 0.00f)) {
 					Kill_Player(&player, Burn, &deaths);
 				}
 				break;
@@ -536,27 +536,29 @@ void L2_Update(void)
 						crusherstate = 1;
 					}
 					// if the player hits the crusher at the bottom, add death and reset
-					if (AreSquaresIntersecting(player.x, player.y, player.width, player.height, traps[trap_index].x[0], traps[trap_index].y[0], traps[trap_index].x[1] - traps[trap_index].x[0], traps[trap_index].y[2] - traps[trap_index].y[0]) && !(player.state == Dead || player.state == Spawning)) {
-						if (crusher_direction(traps[trap_index], player) == 1) {
-							if (player.x >= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
-								player.x = traps[trap_index].x[1];
-								player.movex = 0;
+					if (!((buffstate & 0b100) && Buff[invulBuff].buffduration > 0.00f)) {
+						if (AreSquaresIntersecting(player.x, player.y, player.width, player.height, traps[trap_index].x[0], traps[trap_index].y[0], traps[trap_index].x[1] - traps[trap_index].x[0], traps[trap_index].y[2] - traps[trap_index].y[0]) && !(player.state == Dead || player.state == Spawning)) {
+							if (crusher_direction(traps[trap_index], player) == 1) {
+								if (player.x >= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+									player.x = traps[trap_index].x[1];
+									player.movex = 0;
+								}
+								else if (player.x <= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+									player.x = traps[trap_index].x[0] - player.width;
+									player.movex = 0;
+								}
 							}
-							else if (player.x <= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
-								player.x = traps[trap_index].x[0] - player.width;
-								player.movex = 0;
+							else if (crusher_direction(traps[trap_index], player) == 2) {
+								player.y = traps[trap_index].y[2];
+								player.movey = 0;
+
+								if ((player.y + player.height + 30) >= traps[trap_index].y[1]) {
+									player.y = (traps[trap_index].y[1] - player.height - 15);
+									Kill_Player(&player, Crush, &deaths);
+								}
 							}
-						}
-						else if (crusher_direction(traps[trap_index], player) == 2) {
-							player.y = traps[trap_index].y[2];
-							player.movey = 0;
 
-							if ((player.y + player.height + 30) >= traps[trap_index].y[1]) {
-								player.y = (traps[trap_index].y[1] - player.height - 15);
-								Kill_Player(&player, Crush, &deaths);
 						}
-						}
-
 					}
 				}
 				if (crusherstate == 1) {
@@ -567,21 +569,24 @@ void L2_Update(void)
 						crusherstate = 0;
 					}
 					//if the player hits the crusher as it goes up, no death but cant go in
-					if (AreSquaresIntersecting(player.x, player.y, player.width, player.height, traps[trap_index].x[0], traps[trap_index].y[0], traps[trap_index].x[1] - traps[trap_index].x[0], traps[trap_index].y[2] - traps[trap_index].y[0]) && !(player.state == Dead || player.state == Spawning)) {
-						if (crusher_direction(traps[trap_index], player) == 1) {
+					if (!((buffstate & 0b100) && Buff[invulBuff].buffduration > 0.00f)) {
+						if (AreSquaresIntersecting(player.x, player.y, player.width, player.height, traps[trap_index].x[0], traps[trap_index].y[0], traps[trap_index].x[1] - traps[trap_index].x[0], traps[trap_index].y[2] - traps[trap_index].y[0]) && !(player.state == Dead || player.state == Spawning)) {
+							if (crusher_direction(traps[trap_index], player) == 1) {
 
-							if (player.x >= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
-								player.x = traps[trap_index].x[1];
-								player.movex = 0;
+								if (player.x >= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+									player.x = traps[trap_index].x[1];
+									player.movex = 0;
+								}
+								else if (player.x <= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+									player.x = traps[trap_index].x[0] - player.width;
+									player.movex = 0;
+								}
 							}
-							else if (player.x <= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
-								player.x = traps[trap_index].x[0] - player.width;
-								player.movex = 0;
+							else if (crusher_direction(traps[trap_index], player) == 2) {
+								player.y = traps[trap_index].y[2];
+								player.movey = 0;
 							}
-						}
-						else if (crusher_direction(traps[trap_index], player) == 2) {
-							player.y = traps[trap_index].y[2];
-							player.movey = 0;
+
 						}
 
 					}

@@ -36,27 +36,3 @@ int is_colliding(float x, float y, float height, float width) {
 }
 
 
-
-//jumpheight
-#if 0
-
-if (buffstate & jumpBuff){
-	player.speed += 100 ; // or should i instead do speed *2? 
-
-
-}
-
-
-
-
-
-//speedboost/slowtime
-if (/*buffstate & power[i] - box)*/) {
-
-}
-
-//invulnerable
-if (/*buffstate & power[i] - box)*/) {
-
-}
-#endif
