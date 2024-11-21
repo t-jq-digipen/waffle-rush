@@ -16,7 +16,6 @@
 #pragma once
 #include "platform.h"
 
-
 // MOVEMENT AND MOVESTATE LOGIC
 #pragma region Movement and movestate
 // 
@@ -700,11 +699,12 @@ void jump(Player* player, MoveState movestate) {
 			player->spawn_time = 0;
 			player->movey = (deathcause != Fall) ? 0 : -300;
 			++*deaths;
-		}
+			}
 	}
 
 	void Spawn_Player(Player* player, coords spawn,  Camera* camera) {
 		// Player changes
+		CP_Sound deathsound = CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 		player->x = spawn.x;
 		player->y = spawn.y;
 		player->movex = 0;
@@ -715,6 +715,8 @@ void jump(Player* player, MoveState movestate) {
 		camera->prespawnY = camera->limittop;
 		camera->respawnX = spawn.x - camera->width / 2;
 		camera->respawnY = spawn.y - 3 * camera->height / 4;
+		play_music(&audio, 0.005, deathsound);
+		CP_Sound_Free(deathsound);
 	}
 
 	void Reset_Player(Player* player, MoveState* movestate) {

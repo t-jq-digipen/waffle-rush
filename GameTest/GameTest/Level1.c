@@ -16,6 +16,7 @@
 level levels[num_levels];
 float timeElapsed;
 int levelEnded;
+CP_Sound level1music;
 
 void L1_Init(void)
 {
@@ -33,6 +34,7 @@ void L1_Init(void)
 	fall_sprite			= CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite		= CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite			= CP_Image_Load("Assets/Plate.png");
+	level1music			= CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
 #pragma endregion
 
 	// LEVEL INIT
@@ -297,6 +299,9 @@ void L1_Update(void)
 {
 	// background
 	CP_Graphics_ClearBackground(bg);
+
+	//bgm
+	play_music(&audio, 10, level1music);
 
 	// getdt
 	float dt = CP_System_GetDt();
@@ -787,6 +792,7 @@ void L1_Update(void)
 
 void L1_Exit(void)
 {
+	CP_Sound_Free(&level1music);
 	CP_Image_Free(&player_sprite);
 	CP_Image_Free(&transition_sprite);
 	CP_Image_Free(&spawn_sprite);

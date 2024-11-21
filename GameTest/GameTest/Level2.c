@@ -16,7 +16,7 @@ float timeElapsed;
 int levelEnded;
 CP_Sound lv2music;
 Audio audio;
-float timeforMusic = 7.0f;
+float timeforMusic = 10.0f;
 
 
 void L2_Init(void)
@@ -26,7 +26,7 @@ void L2_Init(void)
 #pragma region Assets
 // load font
 	text = CP_Font_Load("Assets/Exo2-Regular.ttf");
-	lv2music = CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
+	lv2music = CP_Sound_LoadMusic("Assets/Levelselectthemeig.wav");
 	audio.playing = 0;
 	audio.duration = 0.0;
 
