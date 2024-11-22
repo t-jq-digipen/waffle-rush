@@ -34,7 +34,7 @@ void L1_Init(void)
 	fall_sprite			= CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite		= CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite			= CP_Image_Load("Assets/Plate.png");
-	//bgm1.music		= CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
+	bgm1.music			= CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
 	deathsound.music	= CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 #pragma endregion
 
@@ -48,6 +48,9 @@ void L1_Init(void)
 			&levels[i].time.minutes, &levels[i].time.seconds, &levels[i].time.millis);
 	}
 	fclose(file2);
+
+	bgm1.grp = CP_SOUND_GROUP_0;
+	CP_Sound_SetGroupVolume(0, 0.1);
 
 
 	// Initialize checkpoints and first spawn

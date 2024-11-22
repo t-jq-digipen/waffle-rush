@@ -34,7 +34,7 @@ void LSelect_Init(void)
 	fall_sprite = CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite = CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite = CP_Image_Load("Assets/Plate.png");
-	//bgm1.music = CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
+	bgmMainMenu.music = CP_Sound_LoadMusic("Assets/LevelSong.wav");
 	deathsound.music = CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 #pragma endregion
 
@@ -49,7 +49,8 @@ void LSelect_Init(void)
 	}
 	fclose(file2);
 
-
+	bgmMainMenu.grp = CP_SOUND_GROUP_0;
+	CP_Sound_SetGroupVolume(0, 1);
 	// Initialize checkpoints and first spawn
 	reset_checkpoints(&checkpoint);
 	FILE* CheckpointFile = fopen("Assets/Level_Select/Checkpoint.txt", "r");
@@ -299,7 +300,7 @@ void LSelect_Update(void)
 	//printf("camera.worldshiftx %f | camera.worldshifty %f\n", camera.worldshiftx, camera.worldshifty);
 	// background
 	CP_Graphics_ClearBackground(bg);
-	//play_music(bgm1.music, 10);
+	play_music(bgmMainMenu.music, 10);
 
 	// getdt
 	float dt = CP_System_GetDt();
@@ -958,6 +959,6 @@ void LSelect_Exit(void)
 	CP_Image_Free(&fall_sprite);
 	CP_Image_Free(&crush_sprite);
 	CP_Image_Free(&goal_sprite);
-	//CP_Sound_Free(&bgm1.music);
+	CP_Sound_Free(&bgmMainMenu.music);
 	CP_Sound_Free(&deathsound.music);
 }

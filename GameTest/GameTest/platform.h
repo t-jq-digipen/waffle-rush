@@ -44,6 +44,7 @@ LevelState levelstate;
 //audio
 typedef struct Audio {
 	CP_Sound music;
+	CP_SOUND_GROUP grp;
 	int playing;
 	float duration;
 }Audio;
@@ -51,6 +52,8 @@ typedef struct Audio {
 Audio bgm1;
 Audio bgm2;
 Audio bgm3;
+Audio bgmMainMenu;
+Audio deathsound;
 Audio deathsound;
 
 

@@ -31,7 +31,7 @@ void L3_Init(void)
 	fall_sprite = CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite = CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite = CP_Image_Load("Assets/Plate.png");
-	//bgm3.music = CP_Sound_LoadMusic("Assets/LevelSong.wav");
+	bgm3.music = CP_Sound_LoadMusic("Assets/Dumba.wav");
 	deathsound.music = CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 #pragma endregion
 
@@ -46,6 +46,9 @@ void L3_Init(void)
 	}
 	fclose(file2);
 
+	bgm3.grp = CP_SOUND_GROUP_0;
+	CP_Sound_SetGroupVolume(0, 0.1);
+	
 
 	// Initialize checkpoints and first spawn
 	reset_checkpoints(&checkpoint);
@@ -300,7 +303,7 @@ void L3_Update(void)
 	CP_Graphics_ClearBackground(bg);
 
 	//audio 
-	play_music(&bgm3, 10.0);
+	play_music(&bgm3, 22.0);
 
 	// getdt
 	float dt = CP_System_GetDt();
