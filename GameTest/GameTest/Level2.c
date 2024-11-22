@@ -14,8 +14,6 @@
 level levels[num_levels];
 float timeElapsed;
 int levelEnded;
-CP_Sound lv2music;
-Audio audio;
 float timeforMusic = 10.0f;
 
 
@@ -26,9 +24,6 @@ void L2_Init(void)
 #pragma region Assets
 // load font
 	text = CP_Font_Load("Assets/Exo2-Regular.ttf");
-	lv2music = CP_Sound_LoadMusic("Assets/Levelselectthemeig.wav");
-	audio.playing = 0;
-	audio.duration = 0.0;
 
 
 	// load player sprite
@@ -39,6 +34,8 @@ void L2_Init(void)
 	fall_sprite = CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite = CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite = CP_Image_Load("Assets/Plate.png");
+	//bgm2.music = CP_Sound_LoadMusic("Assets/Levelselectthemeig.wav");
+	deathsound.music = CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 #pragma endregion
 
 	// LEVEL INIT
@@ -51,8 +48,6 @@ void L2_Init(void)
 			&levels[i].time.minutes, &levels[i].time.seconds, &levels[i].time.millis);
 	}
 	fclose(file2);
-	audio.duration= 4;
-	audio.playing = 0;
 
 
 	// Initialize checkpoints and first spawn
@@ -305,11 +300,9 @@ void L2_Init(void)
 void L2_Update(void)
 {
 	//audio 
-	play_music(&audio, timeforMusic, lv2music);	
+	play_music(&bgm2, timeforMusic);	
 
 
-
-	
 	// background
 	CP_Graphics_ClearBackground(bg);
 
@@ -812,5 +805,6 @@ void L2_Exit(void)
 	CP_Image_Free(&fall_sprite);
 	CP_Image_Free(&crush_sprite);
 	CP_Image_Free(&goal_sprite);
-	CP_Sound_Free(&lv2music);
+	CP_Sound_Free(&bgm2);
+	CP_Sound_Free(&deathsound);
 }

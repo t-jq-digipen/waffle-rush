@@ -14,7 +14,6 @@
 level levels[num_levels];
 float timeElapsed;
 int levelEnded;
-CP_Sound lv3music;
 
 void L3_Init(void)
 {
@@ -32,7 +31,8 @@ void L3_Init(void)
 	fall_sprite = CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite = CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite = CP_Image_Load("Assets/Plate.png");
-	lv3music = CP_Sound_LoadMusic("Assets/LevelSong.wav");
+	//bgm3.music = CP_Sound_LoadMusic("Assets/LevelSong.wav");
+	deathsound.music = CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 #pragma endregion
 
 	// LEVEL INIT
@@ -300,7 +300,7 @@ void L3_Update(void)
 	CP_Graphics_ClearBackground(bg);
 
 	//audio 
-	play_music(&audio, 10.0, lv3music);
+	play_music(&bgm3, 10.0);
 
 	// getdt
 	float dt = CP_System_GetDt();
@@ -783,7 +783,8 @@ void L3_Update(void)
 
 void L3_Exit(void)
 {
-	CP_Sound_Free(&lv3music);
+	CP_Sound_Free(&bgm3);
+	CP_Sound_Free(&deathsound);
 	CP_Image_Free(&player_sprite);
 	CP_Image_Free(&transition_sprite);
 	CP_Image_Free(&spawn_sprite);

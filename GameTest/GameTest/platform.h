@@ -43,13 +43,18 @@ LevelState levelstate;
 
 //audio
 typedef struct Audio {
+	CP_Sound music;
 	int playing;
 	float duration;
 }Audio;
 
-Audio audio;
+Audio bgm1;
+Audio bgm2;
+Audio bgm3;
+Audio deathsound;
 
-void play_music(Audio *audio,float seconds, CP_Sound songname);
+
+void play_music(Audio *audio,float seconds);
 //void stop_music(Audio* audio, CP_Sound songname);
 
 // Level Variables
@@ -310,7 +315,7 @@ CP_Color bg, pausebg, black, red, green, plat, wall, stamina; //colors
 	// Player States
 	void Init_Player(float* speed, Player* player, int* deaths);
 	void Kill_Player(Player* player, CauseOfDeath deathcause, int* deaths);
-	void Spawn_Player(Player* player, coords spawn, Camera* camera);
+	void Spawn_Player(Player* player, coords spawn, Camera* camera, CP_Sound music);
 	void Reset_Player(Player* player, MoveState* movestate);
 	void Transition_Player(Player* player, MoveState* movestate);
 

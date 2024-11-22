@@ -232,10 +232,10 @@ void movement(Player* ply, MoveState movestate, float speed, float dt) {
 
 
 
-void play_music(Audio *audio, float seconds, CP_Sound songname) {
+void play_music(Audio *audio, float seconds) {
 
 	if (audio->playing == 0) {
-		CP_Sound_Play(songname); 
+		CP_Sound_Play(audio->music); 
 		audio->playing = 1;       
 		audio->duration = seconds;         
 	}
@@ -702,9 +702,8 @@ void jump(Player* player, MoveState movestate) {
 			}
 	}
 
-	void Spawn_Player(Player* player, coords spawn,  Camera* camera) {
+	void Spawn_Player(Player* player, coords spawn,  Camera* camera, CP_Sound music) {
 		// Player changes
-		CP_Sound deathsound = CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 		player->x = spawn.x;
 		player->y = spawn.y;
 		player->movex = 0;
@@ -715,8 +714,7 @@ void jump(Player* player, MoveState movestate) {
 		camera->prespawnY = camera->limittop;
 		camera->respawnX = spawn.x - camera->width / 2;
 		camera->respawnY = spawn.y - 3 * camera->height / 4;
-		play_music(&audio, 0.005, deathsound);
-		CP_Sound_Free(deathsound);
+		play_music(&deathsound, 0.005);
 	}
 
 	void Reset_Player(Player* player, MoveState* movestate) {
@@ -744,7 +742,7 @@ void jump(Player* player, MoveState movestate) {
 // TIMER
 /*---------------------------------------------------------------------------------------------------*/
 #pragma region TIMERS
-	void player_anim_updates(Player* player, float dt, MoveState* movestate, Camera* camera, coords spawn) {
+	void player_anim_updates(Player* player, float dt, MoveState* movestate, Camera* camera, coords spawn, CP_Sound music) {
 		player->anim += 10 * dt;
 		if (player->anim >= 20) {
 			player->anim = 0;
@@ -775,7 +773,7 @@ void jump(Player* player, MoveState movestate) {
 		}
 		if (player->death_time >= 17) {
 			if (player->state == Dead) {
-				Spawn_Player(player, spawn, camera);
+				Spawn_Player(player, spawn, camera, music);
 				player->movex = 0;
 			}
 			player->death_time = 17;

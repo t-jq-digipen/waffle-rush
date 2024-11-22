@@ -34,7 +34,8 @@ void L1_Init(void)
 	fall_sprite			= CP_Image_Load("Assets/Fall_Sprite.png");
 	crush_sprite		= CP_Image_Load("Assets/Crush_Sprite.png");
 	goal_sprite			= CP_Image_Load("Assets/Plate.png");
-	level1music			= CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
+	//bgm1.music		= CP_Sound_LoadMusic("Assets/TutorialMusic.wav");
+	deathsound.music	= CP_Sound_LoadMusic("Assets/WaffleMachineRespawn.wav");
 #pragma endregion
 
 	// LEVEL INIT
@@ -301,7 +302,7 @@ void L1_Update(void)
 	CP_Graphics_ClearBackground(bg);
 
 	//bgm
-	play_music(&audio, 10, level1music);
+	play_music(&bgm1, 10);
 
 	// getdt
 	float dt = CP_System_GetDt();
@@ -792,7 +793,9 @@ void L1_Update(void)
 
 void L1_Exit(void)
 {
-	CP_Sound_Free(&level1music);
+
+	CP_Sound_Free(&bgm1);
+	CP_Sound_Free(&deathsound);
 	CP_Image_Free(&player_sprite);
 	CP_Image_Free(&transition_sprite);
 	CP_Image_Free(&spawn_sprite);
