@@ -12,8 +12,11 @@
 #include <stdbool.h>
 #include "platform.h"
 #define MAX_TRAPS 50
+#define SQUARE_SIZE 25
+#define SQUARE_SPEED 100
+#define MAX_SQUARES 5
 
-//
+//Enum for the hazard types
 typedef enum hazardstype {
 	spike,
 	crusher,
@@ -31,10 +34,20 @@ typedef struct Point {
 	float y;
 } Point;
 
+// Structure to represent a square
+typedef struct {
+    float x, y;
+    bool active;
+} Square;
+
+Square squares[MAX_SQUARES]; // Array to store squares
+
+
 hazard traps[MAX_TRAPS];
 
 int numberoftraps;
 int crusherstate;
+float bulletx, bullety;
 
 bool is_point_in_square(Point p, Point squareTopLeft, float width, float height);
 int orientation(Point a, Point b, Point c);

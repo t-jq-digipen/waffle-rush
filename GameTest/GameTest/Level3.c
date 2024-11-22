@@ -13,7 +13,10 @@
 #define num_levels 5
 level levels[num_levels];
 float timeElapsed;
-
+float spawnTimer = 0.0f;     // Timer to control spawning frequency
+float spawnInterval = 0.5f;  // Spawn a square every 0.5 seconds
+float startX;
+float startY;
 void L3_Init(void)
 {
 	// ASSET LOADS
@@ -136,7 +139,7 @@ void L3_Init(void)
 
 #pragma endregion
 
-	//HAZARDS
+	//HAZARDINIT
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Hazard
 	reset_hazards(&traps);
@@ -178,6 +181,11 @@ void L3_Init(void)
 		}
 		}
 	}
+	for (int i = 0; i < MAX_SQUARES; ++i) {
+		squares[i].active = false;
+	}
+	startX = 300;
+	startY = -200;
 	fclose(HazardFile);
 #pragma endregion
 #pragma endregion
@@ -406,9 +414,32 @@ void L3_Update(void)
 		}
 
 #pragma endregion
-		// Hazard
+		// HAZARDLOGIC
 		/*---------------------------------------------------------------------------------------------------*/
 #pragma region Hazard stuff
+	//SHOOTER
+		spawnTimer += CP_System_GetDt();
+		if (spawnTimer >= spawnInterval) {
+			for (int i = 0; i < MAX_SQUARES; ++i) {
+				if (!squares[i].active) {
+					squares[i].x = startX; // Spawn at the defined starting point
+					squares[i].y = startY; // Align along the defined line
+					squares[i].active = true;
+					break;
+				}
+			}
+			spawnTimer = 0.0f;
+		}
+
+		for (int i = 0; i < MAX_SQUARES; ++i) {
+			if (squares[i].active) {
+				squares[i].x -= SQUARE_SPEED * CP_System_GetDt(); // Move square left
+				if (squares[i].x + SQUARE_SIZE < 0) {            // Deactivate square if off-screen
+					squares[i].active = false;
+				}
+			}
+		}
+
 	//declaring top left of square for square triangle collision
 		Point squareTopLeft = { player.x, player.y };
 		for (int trap_index = 0; trap_index < numberoftraps; trap_index++) {
@@ -491,6 +522,8 @@ void L3_Update(void)
 			default: {}
 			}
 		}
+//SHOOTER LOGIC
+
 #pragma endregion
 
 		// CAMERA UPDATE
@@ -600,6 +633,12 @@ void L3_Update(void)
 		}
 
 		// HAZARD DRAWING
+		CP_Settings_Fill(CP_Color_Create(255, 0, 0, 255)); // Red color
+		for (int i = 0; i < MAX_SQUARES; ++i) {
+			if (squares[i].active) {
+				CP_Graphics_DrawRect(squares[i].x-camera.worldshiftx, squares[i].y-camera.worldshifty, SQUARE_SIZE, SQUARE_SIZE);
+			}
+		}
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 		for (int i = 0; i < numberoftraps; ++i)
 		{
