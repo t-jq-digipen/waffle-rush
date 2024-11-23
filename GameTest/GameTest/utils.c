@@ -31,8 +31,8 @@ int IsAreaClicked(float area_center_x, float area_center_y, float area_width, fl
 }
 
 int IsAreaCornerClicked(float area_corner_x, float area_corner_y, float area_width, float area_height, float click_x, float click_y) {
-	if (click_x > (area_corner_x - area_width / 2) && click_x < (area_corner_x + area_width / 2) &&
-		click_y >(area_corner_y - area_height / 2) && click_y < (area_corner_y + area_height / 2)) {
+	if (click_x > (area_corner_x) && click_x < (area_corner_x + area_width) &&
+		click_y >(area_corner_y) && click_y < (area_corner_y + area_height)) {
 		return 1;
 	}
 	return 0;

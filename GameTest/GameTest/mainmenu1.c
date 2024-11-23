@@ -254,17 +254,7 @@ void LSelect_Init(void)
 	// CAMERA INIT
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Camera Init
-
-	camera.spawnX = width * 0.35f; //
-	camera.spawnY = height * 0.45f; //
-	camera.width = 3.0f / 10.0f * width; //
-	camera.height = 0.1f * height; //since base is a bigger number than the top number.
-	camera.prespawnX = camera.respawnX = camera.limitleftx = spawn.x - (camera.width / 2.0f);
-	camera.limitrightx = camera.limitleftx + camera.width;
-	camera.prespawnY = camera.respawnY = camera.limittop = spawn.y - (camera.height * 3.0f / 4.0f);
-	camera.limitbase = camera.limittop + camera.height;
-	camera.worldshiftx = camera.limitleftx - camera.spawnX;
-	camera.worldshifty = camera.limittop - camera.spawnY;
+	Cam_Init(&camera, width, height, spawn);
 #pragma endregion
 
 #pragma region Level Transition Inits
@@ -386,7 +376,7 @@ void LSelect_Update(void)
 			}
 
 			// Jump
-			jump(&player, movestate);
+			jump(&player, movestate, Buff[jumpBuff].state);
 
 			// window clamps (eventually World Clamps)
 			/*player.x = CP_Math_ClampFloat(player.x, 0, width - player.width);
@@ -410,7 +400,7 @@ void LSelect_Update(void)
 				end_transition(&player, &movestate);
 			}
 			// reset with R or touch ground while movestate OnPlat
-			if (CP_Input_KeyTriggered(KEY_R) && !(player.state == Dead || player.state == Spawning) && !isCleared) {
+			if (CP_Input_KeyTriggered(KEY_K) && !(player.state == Dead || player.state == Spawning) && !isCleared) {
 				CauseOfDeath reset = (movestate == InPlat) ? Fall : Burn;
 				Kill_Player(&player, reset, &deaths);
 			}
@@ -514,13 +504,13 @@ void LSelect_Update(void)
 		//camera.limitleftx =  camera.limitleftx  + offsetX;
 		//camera.limitrightx = camera.limitrightx + offsetX;
 #pragma region Camera
+
+		//CamShift(&camera, mouseX, mouseY, width, height);
 		if (!(player.state == Dead)) {
+
 			playerCamColl(&player, &camera); //functionised my camera shift. 
 			//where worldshiftx is now the modifyable for all objects
 		}
-		CP_Settings_NoFill();
-		CP_Settings_RectMode(CP_POSITION_CORNER);
-		//CP_Graphics_DrawRect(camera.limitleftx - camera.worldshiftx, camera.limittop - camera.worldshifty, camera.width, camera.height); //code for rectangle
 	}
 
 #pragma endregion
@@ -531,6 +521,20 @@ void LSelect_Update(void)
 
 	//Drawing Level Text
 	CP_Settings_Fill(black);
+
+	//this will be replaced with an actual logo ideally
+	CP_Settings_TextSize(120);
+	CP_Font_DrawText("WAFFLE RUSH WOOOOOOOO", -800 - camera.worldshiftx, 300 - camera.worldshifty);
+	CP_Font_DrawText("-->", -800 - camera.worldshiftx, 400 - camera.worldshifty);
+	CP_Settings_TextSize(50);
+	CP_Font_DrawText("WRONG WAY", -1750 - camera.worldshiftx, 800 - camera.worldshifty);
+	CP_Settings_TextSize(30);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText("INSTRUCTIONS:", -500 - camera.worldshiftx, 400 - camera.worldshifty);
+	CP_Font_DrawTextBox("WASD to move\nE to enter a level,\ncrawl all the way down to start!", -500 - camera.worldshiftx, 450 - camera.worldshifty, 500);
+
+
+
 	CP_Settings_TextSize(70);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Font_DrawText("TUTORIAL", Tutorial.posx + Tutorial.width / 2 - camera.worldshiftx, Tutorial.height * 5 - camera.worldshifty);
@@ -538,15 +542,7 @@ void LSelect_Update(void)
 	CP_Font_DrawText("Level 2", level2.posx + level2.width / 2 - camera.worldshiftx, level2.height * 5 - camera.worldshifty);
 	CP_Font_DrawText("Level 3", level3.posx + level3.width / 2 - camera.worldshiftx, level3.height * 5 - camera.worldshifty);
 
-	//this will be replaced with an actual logo ideally
-	CP_Settings_TextSize(120);
-	CP_Font_DrawText("WAFFLE RUSH WOOOOOOOO", -800 - camera.worldshiftx, 300 - camera.worldshifty);
-	CP_Font_DrawText("-->", -800 - camera.worldshiftx, 400 - camera.worldshifty);
-	CP_Settings_TextSize(30);
-	CP_Font_DrawText("INSTRUCTIONS:", -400 - camera.worldshiftx, 400 - camera.worldshifty);
-	CP_Font_DrawText("WASD to move, E to enter a level!", -400 - camera.worldshiftx, 450 - camera.worldshifty);
-	CP_Settings_TextSize(50);
-	CP_Font_DrawText("WRONG WAY", -1750-camera.worldshiftx, 800-camera.worldshifty);
+
 
 	// Text transition (when player is touching the platform before entering each level)
 	// display stats when standing on each level platform
@@ -944,10 +940,6 @@ void LSelect_Update(void)
 	}
 #pragma endregion
 
-	// Back to main menu
-	if (CP_Input_KeyDown(KEY_Q)) {
-		CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
-	}
 }
 
 void LSelect_Exit(void)

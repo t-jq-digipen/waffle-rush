@@ -193,5 +193,7 @@
     <Text Include="..\Assets\Level_4\Wall.txt">
       <Filter>Resource Files\Levels\Level_4</Filter>
     </Text>
+    <Text Include="..\Assets\Level2wall.txt" />
+    <Text Include="..\Assets\Options.txt" />
   </ItemGroup>
 </Project>

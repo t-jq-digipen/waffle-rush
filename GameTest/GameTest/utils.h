@@ -53,6 +53,7 @@ void AddScore(int *totalScore, int addScore, int *isCleared);
 // score increment animation
 int IncrementScore(int startScore, int endScore, float* timeElapsed, float dt);
 
+
 typedef struct EnterLevel
 {
 	float posx, posy, height, width;

@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "hazard.h"
 #include "camera.h"
+#include "playerbuff.h"
 
 
 #define max_coords 16
@@ -73,6 +74,10 @@ int isCleared; // check if level cleared (player touches goal)
 int levelScore; // level score
 int highScore; // level high score
 int levelNumber; // level number
+int frameCounter;  //counts frames between last touch of wall while sliding
+bool wasSliding;  //checks is player was sliding
+int lastDir;  //saves last direction player was facing before wall jumping (for coyote time)
+int coyotetime;
 
 // Graphics
 CP_Image player_sprite, transition_sprite, spawn_sprite, burn_sprite, fall_sprite, crush_sprite, goal_sprite;
@@ -110,6 +115,8 @@ CP_Color bg, pausebg, black, red, green, plat, wall, stamina; //colors
 		float limitbase;
 		float worldshiftx;
 		float worldshifty;
+		float camshiftx;
+		float camshifty;
 	} Camera;
 
 	Camera camera;
@@ -273,7 +280,7 @@ CP_Color bg, pausebg, black, red, green, plat, wall, stamina; //colors
 		// platformer and in platform movements
 		void movement(Player* p, MoveState movestate, float speed, float dt);
 		// jump >:)
-		void jump(Player* player, MoveState movestate);
+		void jump(Player* player, MoveState movestate, int buffstate);
 		#pragma endregion
 
 	// HITBOX LOGIC (see platform.c)
@@ -314,7 +321,14 @@ CP_Color bg, pausebg, black, red, green, plat, wall, stamina; //colors
 
 		void CollWalls(platblocks walls[], int num, Player* pply, Player ply, MoveState movestate);
 	#pragma endregion 
-	
+
+	// Camera
+
+	void Cam_Init(Camera* camera, float screen_width, float screen_height, coords spawn);
+	void CamShift(Camera* camera, float mouse_x, float mouse_y, float screen_width, float screen_height);
+	void CamHighLight(Camera* camera, float mouse_x, float mouse_y, float screen_width, float screen_height);
+
+
 	// Player States
 	void Init_Player(float* speed, Player* player, int* deaths);
 	void Kill_Player(Player* player, CauseOfDeath deathcause, int* deaths);

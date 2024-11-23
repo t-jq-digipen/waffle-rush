@@ -9,11 +9,13 @@
 //---------------------------------------------------------
 
 #include "LevelSelect.h"
+#include "playerbuff.h"
 
 #define num_levels 5
 level levels[num_levels];
 float timeElapsed;
 int levelEnded;
+int buffstate;
 float timeforMusic = 10.0f;
 
 
@@ -70,6 +72,28 @@ void L2_Init(void)
 	// initialize goal
 	goalx = 1500;
 	goaly = 950;
+
+	// initialize powerups location
+	buffstate = 0b000;
+	Buff[jumpBuff].canPickup = 1; //if active,
+	Buff[jumpBuff].X = 500; //draw
+	Buff[jumpBuff].Y = 575; //draw
+	Buff[jumpBuff].width = 20; //draw
+	Buff[jumpBuff].height = 20; //draw
+	Buff[jumpBuff].buffduration = 0; //seconds?
+	Buff[jumpBuff].jumpIncrease = 800;
+	Buff[jumpBuff].resetTimer = 3;
+
+
+	Buff[invulBuff].canPickup = 1; //if active,
+	Buff[invulBuff].X = 750; //draw
+	Buff[invulBuff].Y = 575; //draw
+	Buff[invulBuff].width = 20; //draw
+	Buff[invulBuff].height = 20; //draw
+	Buff[invulBuff].buffduration = 0; //seconds?
+	Buff[invulBuff].invulActive = 0;
+	Buff[invulBuff].resetTimer = 3;
+	
 
 	// PLATFORMS INITIALIZATION
 	/*---------------------------------------------------------------------------------------------------------------------*/
@@ -220,6 +244,9 @@ void L2_Init(void)
 	player_sprite_x = 0;
 	player_sprite_y = 0;
 
+	// clear anim
+	clear_timer = 0;
+
 #pragma endregion
 	// Misc settings
 	/*---------------------------------------------------------------------------------------------------------------------*/
@@ -276,16 +303,7 @@ void L2_Init(void)
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Camera Init + Transition Init
 
-	camera.spawnX = width * 0.35f; //
-	camera.spawnY = height * 0.45f; //
-	camera.width = 3.0f / 10.0f * width; //
-	camera.height = 0.1f * height; //since base is a bigger number than the top number.
-	camera.prespawnX = camera.respawnX = camera.limitleftx = spawn.x - (camera.width / 2.0f);
-	camera.limitrightx = camera.limitleftx + camera.width;
-	camera.prespawnY = camera.respawnY = camera.limittop = spawn.y - (camera.height * 3.0f / 4.0f);
-	camera.limitbase = camera.limittop + camera.height;
-	camera.worldshiftx = camera.limitleftx - camera.spawnX;
-	camera.worldshifty = camera.limittop - camera.spawnY;
+	Cam_Init(&camera, width, height, spawn);
 
 	playerLastX = player.x - camera.worldshiftx;
 	playerLastY = player.y - camera.worldshifty;
@@ -391,7 +409,7 @@ void L2_Update(void)
 			}
 
 			// Jump
-			jump(&player, movestate);
+			jump(&player, movestate, buffstate);
 
 			// window clamps (eventually World Clamps)
 			/*player.x = CP_Math_ClampFloat(player.x, 0, 2600);
@@ -415,7 +433,7 @@ void L2_Update(void)
 				end_transition(&player, &movestate);
 			}
 			// reset with R or touch ground while movestate OnPlat
-			if (CP_Input_KeyTriggered(KEY_R) && !(player.state == Dead || player.state == Spawning) && !isCleared) {
+			if (CP_Input_KeyTriggered(KEY_K) && !(player.state == Dead || player.state == Spawning) && !isCleared) {
 				CauseOfDeath reset = (movestate == InPlat) ? Fall : Burn;
 				Kill_Player(&player, reset, &deaths);
 			}
@@ -423,6 +441,73 @@ void L2_Update(void)
 				Kill_Player(&player, Fall, &deaths);
 			}
 		}
+
+#pragma endregion
+
+		// Powerups
+		/*---------------------------------------------------------------------------------------------------*/
+#pragma region Powerups Update
+		
+
+
+		//checking for collision between players and buff
+		//is_colliding(Buff[jumpBuff].X+camera.worldshiftx, Buff[jumpBuff].Y+camera.worldshifty, Buff[jumpBuff].width, Buff[jumpBuff].height);
+		if (is_colliding(Buff[jumpBuff].X, Buff[jumpBuff].Y, Buff[jumpBuff].height, Buff[jumpBuff].width) && Buff[jumpBuff].canPickup == 1) {
+			buffstate = buffstate | jumpBuff;
+			Buff[jumpBuff].canPickup = 0; //availability of the buff on the map
+			Buff[jumpBuff].buffduration = 3;  //this resets the duration so that you can pick up the same buff while its still active
+			
+		}
+		if (is_colliding(Buff[invulBuff].X, Buff[invulBuff].Y, Buff[invulBuff].height, Buff[invulBuff].width) && Buff[invulBuff].canPickup == 1) {
+			buffstate = buffstate | invulBuff;
+			Buff[invulBuff].canPickup = 0; //availability of the buff on the map
+			Buff[invulBuff].buffduration = 3;  //this resets the duration so that you can pick up the same buff while its still active
+		}
+
+		//Reset the spawn of the buffs
+		if (Buff[jumpBuff].canPickup == 0 && Buff[jumpBuff].resetTimer > 0) {
+			Buff[jumpBuff].resetTimer -= 1 * dt;
+			//printf("jump reset timer: %f\n", Buff[jumpBuff].resetTimer);
+			if (Buff[jumpBuff].resetTimer <= 0) {
+				Buff[jumpBuff].canPickup = 1;
+				Buff[jumpBuff].resetTimer = 3;
+			}
+		}
+		if (Buff[invulBuff].canPickup == 0 && Buff[invulBuff].resetTimer > 0) {
+			Buff[invulBuff].resetTimer -= 1 * dt;
+			//printf("invul reset timer: %f\n", Buff[invulBuff].resetTimer);
+			if (Buff[invulBuff].resetTimer <= 0) {
+				Buff[invulBuff].canPickup = 1;
+				Buff[invulBuff].resetTimer = 3;
+			}
+		}
+
+		//Set the stats for jumpboost below the first if statement
+		if ((buffstate & 0b010) && Buff[jumpBuff].buffduration > 0.00f) { //here jumpbuff is active
+			Buff[jumpBuff].buffduration -= 1 * dt;
+			printf("JUMP BUFF ACTIVE!\n");
+			//printf("buff: %d\n", buffstate); 
+			//printf("jump increase duration: %f\n", Buff[jumpBuff].buffduration);
+		}
+		else if ((buffstate & 0b010) && Buff[jumpBuff].buffduration <= 0.00f) {
+			buffstate &= ~0b010;
+			Buff[jumpBuff].buffduration = 3; //maybe can functionise these two to reset
+		}
+
+
+		//Set the stats for invulnerability below the first if statement
+		if ((buffstate & 0b100) && Buff[invulBuff].buffduration > 0.00f) { //here invulbuff is active
+			Buff[invulBuff].buffduration -= 1 * dt;
+			printf("INVUL BUFF ACTIVE!\n");
+			//printf("buff: %d\n", buffstate);
+			//printf("invul duration: %f\n", Buff[invulBuff].buffduration);
+		}
+		else if ((buffstate & 0b100) && Buff[invulBuff].buffduration <= 0.00f) {
+			buffstate &= ~0b100;
+			Buff[invulBuff].buffduration = 3; //maybe can functionise these two to reset
+		}
+
+
 
 #pragma endregion
 		// Hazard
@@ -514,17 +599,14 @@ void L2_Update(void)
 
 		// CAMERA UPDATE
 		/*---------------------------------------------------------------------------------------------------*/
-		//implement the below logic later. do the main camera first.
-		//camera.limitleftx =  camera.limitleftx  + offsetX;
-		//camera.limitrightx = camera.limitrightx + offsetX;
 #pragma region Camera
+
+		CamShift(&camera, mouseX, mouseY, width, height);
 		if (!(player.state == Dead)) {
+
 			playerCamColl(&player, &camera); //functionised my camera shift. 
 			//where worldshiftx is now the modifyable for all objects
 		}
-		CP_Settings_NoFill();
-		CP_Settings_RectMode(CP_POSITION_CORNER);
-		//CP_Graphics_DrawRect(camera.limitleftx - camera.worldshiftx, camera.limittop - camera.worldshifty, camera.width, camera.height); //code for rectangle
 	}
 
 #pragma endregion
@@ -552,10 +634,10 @@ void L2_Update(void)
 			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, 0, 0, 32, 32, 255);
 		}
 		else {
-			if (clear_timer <= 3) {
+			if (clear_timer <= 5) {
 				clear_timer += 6 * dt;
 			}
-			int sprite_x = 32 + (32 * (int)clear_timer);
+			int sprite_x = ((int)clear_timer <= 3) ? 32 + (32 * (int)clear_timer) : 32*4;
 			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, sprite_x, 0, sprite_x + 32, 32, 255);
 		}
 
@@ -645,6 +727,27 @@ void L2_Update(void)
 			}
 		}
 
+		//PowerUps drawing 
+		if (Buff[jumpBuff].canPickup == 1) {
+			CP_Settings_Fill(CP_Color_Create(100, 100, 100, 255));
+			CP_Graphics_DrawRect(Buff[jumpBuff].X-camera.worldshiftx, Buff[jumpBuff].Y-camera.worldshifty, Buff[jumpBuff].width, Buff[jumpBuff].height);
+		}
+		if (Buff[invulBuff].canPickup == 1) {
+			CP_Settings_Fill(CP_Color_Create(100, 100, 100, 255));
+			CP_Graphics_DrawRect(Buff[invulBuff].X - camera.worldshiftx, Buff[invulBuff].Y - camera.worldshifty, Buff[invulBuff].width, Buff[invulBuff].height);
+		}
+
+		// Stamina Bar
+		if (player.stamina < 100.0f) {
+			CP_Settings_Fill(stamina);
+			if (player.stamina <= 35.0f) {
+				CP_Settings_Fill(red);
+			}
+			DrawStatBar(player.x - 15 - camera.worldshiftx, player.y - 30 - camera.worldshifty, player.x + 35 - camera.worldshiftx, player.y - 23 - camera.worldshifty, player.stamina, 100);
+		}
+
+		// Camera Shift Highlight
+		CamHighLight(&camera, mouseX, mouseY, width, height);
 
 		// DEATHS DRAWING
 		CP_Settings_Fill(black);
@@ -666,73 +769,86 @@ void L2_Update(void)
 
 		// LEVEL COMPLETE PAGE
 		if (levelstate == Cleared) {
-			CP_Settings_RectMode(CP_POSITION_CENTER);
-			CP_Settings_Fill(pausebg);
-			CP_Graphics_DrawRect(width / 2, height / 2, width, height);
-			CP_Settings_Fill(wall);
-			CP_Graphics_DrawRect(width / 2, height / 2, 1200, 700);
-			CP_Settings_Fill(black);
-			CP_Settings_TextSize(100);
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Font_DrawText("LEVEL COMPLETE", width / 2, 200);
+			if (clear_timer >= 5) {
+				CP_Settings_RectMode(CP_POSITION_CENTER);
+				CP_Settings_Fill(pausebg);
+				CP_Graphics_DrawRect(width / 2, height / 2, width, height);
+				CP_Settings_Fill(wall);
+				CP_Graphics_DrawRect(width / 2, height / 2, 1200, 700);
+				CP_Settings_Fill(black);
+				CP_Settings_TextSize(100);
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+				CP_Font_DrawText("LEVEL COMPLETE", width / 2, 200);
 
-			CP_Settings_TextSize(50);
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+				CP_Settings_TextSize(50);
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
 
-			// Score labels (on the left side)
-			CP_Font_DrawText("GOAL BONUS", 300, 300);
-			CP_Font_DrawText("TIME BONUS", 300, 400);
-			CP_Font_DrawText("DEATH PENALTIES", 300, 500);
-			CP_Font_DrawText("TOTAL SCORE", 300, 600);
+				// Score labels (on the left side)
+				CP_Font_DrawText("GOAL BONUS", 300, 300);
+				CP_Font_DrawText("TIME BONUS", 300, 400);
+				CP_Font_DrawText("DEATH PENALTIES", 300, 500);
+				CP_Font_DrawText("TOTAL SCORE", 300, 600);
 
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);
 
-			// Score values (on the right side)
-			// GOAL SCORE CALCULATION
-			char scoreText[20] = { 0 };
-			sprintf_s(scoreText, 20, "%d", IncrementScore(0, 10000, &timeElapsed, dt));
-			CP_Font_DrawText(scoreText, 1200, 300);
+				// Score values (on the right side)
+				// GOAL SCORE CALCULATION
+				char scoreText[20] = { 0 };
+				sprintf_s(scoreText, 20, "%d", IncrementScore(0, 10000, &timeElapsed, dt));
+				CP_Font_DrawText(scoreText, 1200, 300);
 
-			// TIMER DRAWING
-			char time[20] = { 0 };
-			sprintf_s(time, 20, "%d", IncrementScore(0, 10000 - (int)timer.seconds * 50 - (int)timer.minutes * 3000, &timeElapsed, dt));
-			CP_Font_DrawText(time, 1200, 400);
+				// TIMER DRAWING
+				char time[20] = { 0 };
+				sprintf_s(time, 20, "%d", IncrementScore(0, 10000 - (int)timer.seconds * 50 - (int)timer.minutes * 3000, &timeElapsed, dt));
+				CP_Font_DrawText(time, 1200, 400);
 
-			// DEATH DRAWING
-			char deathcount[20] = { 0 };
-			sprintf_s(deathcount, 20, "%d", IncrementScore(0, deaths * -100, &timeElapsed, dt));
-			CP_Font_DrawText(deathcount, 1200, 500);
+				// DEATH DRAWING
+				char deathcount[20] = { 0 };
+				sprintf_s(deathcount, 20, "%d", IncrementScore(0, deaths * -100, &timeElapsed, dt));
+				CP_Font_DrawText(deathcount, 1200, 500);
 
-			// SCORE DRAWING
-			char score[20] = { 0 };
-			sprintf_s(score, 20, "%d", IncrementScore(0, levelScore, &timeElapsed, dt));
-			CP_Font_DrawText(score, 1200, 600);
+				// SCORE DRAWING
+				char score[20] = { 0 };
+				sprintf_s(score, 20, "%d", IncrementScore(0, levelScore, &timeElapsed, dt));
+				CP_Font_DrawText(score, 1200, 600);
 
-			CP_Settings_TextSize(50);
-			// draw resume button
-			TextBoxCreate(600, 720, 250, 100, "NEXT LEVEL", red);
-			int ResumeClick = IsAreaClicked(600, 720, 250, 100, mouseX, mouseY); //if mouse is over button
-			if (ResumeClick) {
-				CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
-				CP_Graphics_DrawRect(600, 720, 250, 100);
-				if (CP_Input_MouseClicked()) { //if LMB1 pressed
-					levelEnded = end;
-					levelstate = EndLevel;
+				CP_Settings_TextSize(50);
+				// draw next level button
+				TextBoxCreate(500, 720, 250, 100, "NEXT LEVEL", red);
+				int NextLevelClick = IsAreaClicked(500, 720, 250, 100, mouseX, mouseY); //if mouse is over button
+				if (NextLevelClick) {
+					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+					CP_Graphics_DrawRect(500, 720, 250, 100);
+					if (CP_Input_MouseClicked()) { //if LMB1 pressed
+						levelEnded = end;
+						levelstate = EndLevel;
+					}
 				}
-			}
 
-			// draw quit button
-			TextBoxCreate(1000, 720, 250, 100, "EXIT", red);
-			int QuitClick = IsAreaClicked(1000, 720, 250, 100, mouseX, mouseY); //if mouse is over button
-			if (QuitClick) {
-				CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
-				CP_Graphics_DrawRect(1000, 720, 250, 100);
-				if (CP_Input_MouseClicked()) { //if LMB1 pressed
-					CP_Engine_SetNextGameState(LSelect_Init, LSelect_Update, LSelect_Exit);
+				// draw replay button
+				TextBoxCreate(800, 720, 250, 100, "REPLAY", red);
+				int ReplayClick = IsAreaClicked(800, 720, 250, 100, mouseX, mouseY); //if mouse is over button
+				if (ReplayClick) {
+					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+					CP_Graphics_DrawRect(800, 720, 250, 100);
+					if (CP_Input_MouseClicked()) { //if LMB1 pressed
+						CP_Engine_SetNextGameStateForced(L2_Init, L2_Update, L2_Exit);
+					}
 				}
-			}
 
-			CP_Settings_RectMode(CP_POSITION_CORNER);
+				// draw quit button
+				TextBoxCreate(1100, 720, 250, 100, "EXIT", red);
+				int QuitClick = IsAreaClicked(1100, 720, 250, 100, mouseX, mouseY); //if mouse is over button
+				if (QuitClick) {
+					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+					CP_Graphics_DrawRect(1100, 720, 250, 100);
+					if (CP_Input_MouseClicked()) { //if LMB1 pressed
+						CP_Engine_SetNextGameState(LSelect_Init, LSelect_Update, LSelect_Exit);
+					}
+				}
+
+				CP_Settings_RectMode(CP_POSITION_CORNER);
+			}
 		}
 
 		// PAUSE MENU
@@ -786,14 +902,7 @@ void L2_Update(void)
 		}
 
 #pragma endregion
-	
-		// Back to main menu
-		if (CP_Input_KeyTriggered(KEY_Q) && levelstate == NotPaused) {
-			levelstate = InQuit;
-		}
-		else if (CP_Input_KeyTriggered(KEY_Q) && levelstate == InQuit) {
-			levelstate = NotPaused;
-		}
+
 }
 
 void L2_Exit(void)
@@ -806,6 +915,7 @@ void L2_Exit(void)
 	CP_Image_Free(&fall_sprite);
 	CP_Image_Free(&crush_sprite);
 	CP_Image_Free(&goal_sprite);
+
 	CP_Sound_Free(&bgm2);
 	CP_Sound_Free(&deathsound);
 }

@@ -431,7 +431,7 @@ void QuitMenu() {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
 		CP_Graphics_DrawRect(1100, 2 * height / 3, 300, 200);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
-			CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
+			CP_Engine_SetNextGameState(LSelect_Init, LSelect_Update, LSelect_Exit);
 		}
 	}
 

@@ -219,6 +219,9 @@ void L3_Init(void)
 	player_sprite_x = 0;
 	player_sprite_y = 0;
 
+	// clear anim
+	clear_timer = 0;
+
 #pragma endregion
 	// Misc settings
 	/*---------------------------------------------------------------------------------------------------------------------*/
@@ -275,16 +278,7 @@ void L3_Init(void)
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Camera Init + Transition Init
 
-	camera.spawnX = width * 0.35f; //
-	camera.spawnY = height * 0.45f; //
-	camera.width = 3.0f / 10.0f * width; //
-	camera.height = 0.1f * height; //since base is a bigger number than the top number.
-	camera.prespawnX = camera.respawnX = camera.limitleftx = spawn.x - (camera.width / 2.0f);
-	camera.limitrightx = camera.limitleftx + camera.width;
-	camera.prespawnY = camera.respawnY = camera.limittop = spawn.y - (camera.height * 3.0f / 4.0f);
-	camera.limitbase = camera.limittop + camera.height;
-	camera.worldshiftx = camera.limitleftx - camera.spawnX;
-	camera.worldshifty = camera.limittop - camera.spawnY;
+	Cam_Init(&camera, width, height, spawn);
 
 	playerLastX = player.x - camera.worldshiftx;
 	playerLastY = player.y - camera.worldshifty;
@@ -389,7 +383,7 @@ void L3_Update(void)
 			}
 
 			// Jump
-			jump(&player, movestate);
+			jump(&player, movestate, Buff[jumpBuff].state);
 
 			// window clamps (eventually World Clamps)
 			/*player.x = CP_Math_ClampFloat(player.x, 0, 2600);
@@ -413,7 +407,7 @@ void L3_Update(void)
 				end_transition(&player, &movestate);
 			}
 			// reset with R or touch ground while movestate OnPlat
-			if (CP_Input_KeyTriggered(KEY_R) && !(player.state == Dead || player.state == Spawning) && !isCleared) {
+			if (CP_Input_KeyTriggered(KEY_K) && !(player.state == Dead || player.state == Spawning) && !isCleared) {
 				CauseOfDeath reset = (movestate == InPlat) ? Fall : Burn;
 				Kill_Player(&player, reset, &deaths);
 			}
@@ -516,13 +510,13 @@ void L3_Update(void)
 		//camera.limitleftx =  camera.limitleftx  + offsetX;
 		//camera.limitrightx = camera.limitrightx + offsetX;
 #pragma region Camera
+
+		CamShift(&camera, mouseX, mouseY, width, height);
 		if (!(player.state == Dead)) {
+
 			playerCamColl(&player, &camera); //functionised my camera shift. 
 			//where worldshiftx is now the modifyable for all objects
 		}
-		CP_Settings_NoFill();
-		CP_Settings_RectMode(CP_POSITION_CORNER);
-		//CP_Graphics_DrawRect(camera.limitleftx - camera.worldshiftx, camera.limittop - camera.worldshifty, camera.width, camera.height); //code for rectangle
 	}
 
 #pragma endregion
@@ -550,10 +544,10 @@ void L3_Update(void)
 			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, 0, 0, 32, 32, 255);
 		}
 		else {
-			if (clear_timer <= 3) {
+			if (clear_timer <= 5) {
 				clear_timer += 6 * dt;
 			}
-			int sprite_x = 32 + (32 * (int)clear_timer);
+			int sprite_x = ((int)clear_timer <= 3) ? 32 + (32 * (int)clear_timer) : 32 * 4;
 			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, sprite_x, 0, sprite_x + 32, 32, 255);
 		}
 
@@ -643,6 +637,8 @@ void L3_Update(void)
 			}
 		}
 
+		// Camera Shift Highlight
+		CamHighLight(&camera, mouseX, mouseY, width, height);
 
 		// DEATHS DRAWING
 		CP_Settings_Fill(black);
@@ -664,63 +660,75 @@ void L3_Update(void)
 
 		// LEVEL COMPLETE PAGE
 		if (levelstate == Cleared) {
-			CP_Settings_RectMode(CP_POSITION_CENTER);
-			CP_Settings_Fill(pausebg);
-			CP_Graphics_DrawRect(width / 2, height / 2, width, height);
-			CP_Settings_Fill(wall);
-			CP_Graphics_DrawRect(width / 2, height / 2, 1200, 700);
-			CP_Settings_Fill(black);
-			CP_Settings_TextSize(100);
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Font_DrawText("LEVEL COMPLETE", width / 2, 200);
+			if (clear_timer >= 5) {
+				CP_Settings_RectMode(CP_POSITION_CENTER);
+				CP_Settings_Fill(pausebg);
+				CP_Graphics_DrawRect(width / 2, height / 2, width, height);
+				CP_Settings_Fill(wall);
+				CP_Graphics_DrawRect(width / 2, height / 2, 1200, 700);
+				CP_Settings_Fill(black);
+				CP_Settings_TextSize(100);
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+				CP_Font_DrawText("LEVEL COMPLETE", width / 2, 200);
 
-			CP_Settings_TextSize(50);
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+				CP_Settings_TextSize(50);
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
 
-			// Score labels (on the left side)
-			CP_Font_DrawText("GOAL BONUS", 300, 300);
-			CP_Font_DrawText("TIME BONUS", 300, 400);
-			CP_Font_DrawText("DEATH PENALTIES", 300, 500);
-			CP_Font_DrawText("TOTAL SCORE", 300, 600);
+				// Score labels (on the left side)
+				CP_Font_DrawText("GOAL BONUS", 300, 300);
+				CP_Font_DrawText("TIME BONUS", 300, 400);
+				CP_Font_DrawText("DEATH PENALTIES", 300, 500);
+				CP_Font_DrawText("TOTAL SCORE", 300, 600);
 
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);
 
-			// Score values (on the right side)
-			// GOAL SCORE CALCULATION
-			char scoreText[20] = { 0 };
-			sprintf_s(scoreText, 20, "%d", IncrementScore(0, 10000, &timeElapsed, dt));
-			CP_Font_DrawText(scoreText, 1200, 300);
+				// Score values (on the right side)
+				// GOAL SCORE CALCULATION
+				char scoreText[20] = { 0 };
+				sprintf_s(scoreText, 20, "%d", IncrementScore(0, 10000, &timeElapsed, dt));
+				CP_Font_DrawText(scoreText, 1200, 300);
 
-			// TIMER DRAWING
-			char time[20] = { 0 };
-			sprintf_s(time, 20, "%d", IncrementScore(0, 10000 - (int)timer.seconds * 50 - (int)timer.minutes * 3000, &timeElapsed, dt));
-			CP_Font_DrawText(time, 1200, 400);
+				// TIMER DRAWING
+				char time[20] = { 0 };
+				sprintf_s(time, 20, "%d", IncrementScore(0, 10000 - (int)timer.seconds * 50 - (int)timer.minutes * 3000, &timeElapsed, dt));
+				CP_Font_DrawText(time, 1200, 400);
 
-			// DEATH DRAWING
-			char deathcount[20] = { 0 };
-			sprintf_s(deathcount, 20, "%d", IncrementScore(0, deaths * -100, &timeElapsed, dt));
-			CP_Font_DrawText(deathcount, 1200, 500);
+				// DEATH DRAWING
+				char deathcount[20] = { 0 };
+				sprintf_s(deathcount, 20, "%d", IncrementScore(0, deaths * -100, &timeElapsed, dt));
+				CP_Font_DrawText(deathcount, 1200, 500);
 
-			// SCORE DRAWING
-			char score[20] = { 0 };
-			sprintf_s(score, 20, "%d", IncrementScore(0, levelScore, &timeElapsed, dt));
-			CP_Font_DrawText(score, 1200, 600);
+				// SCORE DRAWING
+				char score[20] = { 0 };
+				sprintf_s(score, 20, "%d", IncrementScore(0, levelScore, &timeElapsed, dt));
+				CP_Font_DrawText(score, 1200, 600);
 
-			CP_Settings_TextSize(50);
-
-			// draw quit button
-			TextBoxCreate(1000, 720, 250, 100, "EXIT", red);
-			int QuitClick = IsAreaClicked(1000, 720, 250, 100, mouseX, mouseY); //if mouse is over button
-			if (QuitClick) {
-				CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
-				CP_Graphics_DrawRect(1000, 720, 250, 100);
-				if (CP_Input_MouseClicked()) { //if LMB1 pressed
-					levelEnded = end;
-					levelstate = EndLevel;
+				CP_Settings_TextSize(50);
+				// draw replay button
+				TextBoxCreate(800, 720, 250, 100, "REPLAY", red);
+				int ReplayClick = IsAreaClicked(800, 720, 250, 100, mouseX, mouseY); //if mouse is over button
+				if (ReplayClick) {
+					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+					CP_Graphics_DrawRect(800, 720, 250, 100);
+					if (CP_Input_MouseClicked()) { //if LMB1 pressed
+						CP_Engine_SetNextGameStateForced(L3_Init, L3_Update, L3_Exit);
+					}
 				}
-			}
 
-			CP_Settings_RectMode(CP_POSITION_CORNER);
+				// draw quit button
+				TextBoxCreate(1100, 720, 250, 100, "EXIT", red);
+				int QuitClick = IsAreaClicked(1100, 720, 250, 100, mouseX, mouseY); //if mouse is over button
+				if (QuitClick) {
+					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+					CP_Graphics_DrawRect(1100, 720, 250, 100);
+					if (CP_Input_MouseClicked()) { //if LMB1 pressed
+						levelEnded = end;
+						levelstate = EndLevel;
+					}
+				}
+
+				CP_Settings_RectMode(CP_POSITION_CORNER);
+			}
 		}
 
 		// PAUSE MENU
@@ -775,13 +783,6 @@ void L3_Update(void)
 
 #pragma endregion
 	
-		// Back to main menu
-		if (CP_Input_KeyTriggered(KEY_Q) && levelstate == NotPaused) {
-			levelstate = InQuit;
-		}
-		else if (CP_Input_KeyTriggered(KEY_Q) && levelstate == InQuit) {
-			levelstate = NotPaused;
-		}
 }
 
 void L3_Exit(void)
