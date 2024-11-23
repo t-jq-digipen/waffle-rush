@@ -282,16 +282,7 @@ void L1_Init(void)
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Camera Init + Transition Init
 
-	camera.spawnX = width * 0.35f; //
-	camera.spawnY = height * 0.45f; //
-	camera.width = 3.0f / 10.0f * width; //
-	camera.height = 0.1f * height; //since base is a bigger number than the top number.
-	camera.prespawnX = camera.respawnX = camera.limitleftx = spawn.x - (camera.width / 2.0f);
-	camera.limitrightx = camera.limitleftx + camera.width;
-	camera.prespawnY = camera.respawnY = camera.limittop = spawn.y - (camera.height * 3.0f / 4.0f);
-	camera.limitbase = camera.limittop + camera.height;
-	camera.worldshiftx = camera.limitleftx - camera.spawnX;
-	camera.worldshifty = camera.limittop - camera.spawnY;
+	Cam_Init(&camera, width, height, spawn);
 
 	playerLastX = player.x - camera.worldshiftx;
 	playerLastY = player.y - camera.worldshifty;
