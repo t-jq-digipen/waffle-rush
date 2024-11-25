@@ -42,6 +42,9 @@ typedef struct {
 
 Square squares[MAX_SQUARES]; // Array to store squares
 
+CP_Image fire_sprite;
+void Draw_Fire(CP_Image fire_sprite, hazard traps);
+
 
 hazard traps[MAX_TRAPS];
 

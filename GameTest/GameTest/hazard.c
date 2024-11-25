@@ -98,6 +98,3 @@ void reset_hazards(hazard* traps) {
     }
 }
 
-/*Point squares[MAX_SQUARES]; 
-float spawnTimer = 0.0f;     
-float spawnInterval = 0.5f; */ 
