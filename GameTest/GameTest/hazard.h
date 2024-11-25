@@ -12,9 +12,9 @@
 #include <stdbool.h>
 #include "platform.h"
 #define MAX_TRAPS 50
-#define SQUARE_SIZE 25
-#define SQUARE_SPEED 100
-#define MAX_SQUARES 5
+#define SQUARE_SIZE 10
+#define SQUARE_SPEED 200
+#define MAX_SQUARES 10
 
 //Enum for the hazard types
 typedef enum hazardstype {
@@ -25,6 +25,7 @@ typedef enum hazardstype {
 
 typedef struct hazard {
 	int x[3], y[3];
+	int ori;
 	hazardstype type;
 }hazard;
 

@@ -162,6 +162,7 @@ void L3_Init(void)
 			{
 				fscanf_s(HazardFile, "%d %d", &traps[i].x[j], &traps[i].y[j]);
 			}
+			fscanf_s(HazardFile, "%d", &traps[i].ori);
 			break;
 		}
 		case crusher:
