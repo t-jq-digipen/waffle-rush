@@ -13,8 +13,8 @@
 #include "platform.h"
 #define MAX_TRAPS 50
 #define SQUARE_SIZE 10
-#define SQUARE_SPEED 200
-#define MAX_SQUARES 10
+#define SQUARE_SPEED 100
+#define MAX_SQUARES 2
 
 //Enum for the hazard types
 typedef enum hazardstype {
