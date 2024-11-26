@@ -9,6 +9,7 @@
 //---------------------------------------------------------
 
 #include "LevelSelect.h"
+#include "globals.h"
 
 CP_Font exo;
 CP_Color button_color, button_color_locked, button_color_cleared;

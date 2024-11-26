@@ -13,6 +13,7 @@
 #define num_levels 5
 level levels[num_levels];
 float timeElapsed;
+int levelEnded;
 
 void Tutorial_Init(void)
 {
@@ -115,13 +116,13 @@ void Tutorial_Init(void)
 
 
 	// Walls
-	reset_walls(&walls);
+	reset_walls();
 	FILE* WallFile = fopen("Assets/Level_Tutorial/Wall.txt", "r");
 
-	if (WallFile == NULL) {
+	/*if (WallFile == NULL) {
 		printf("Failed to open wall file! Check if file exists\n");
 		CP_Engine_Terminate();
-	}
+	}*/
 
 	fscanf_s(WallFile, "%d", &numwalls);
 
@@ -139,52 +140,18 @@ void Tutorial_Init(void)
 	//HAZARDS
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Hazard
-	reset_hazards(&traps);
+	reset_hazards();
 
 	FILE* HazardFile = fopen("Assets/Level_Tutorial/Hazard.txt", "r");
 	fscanf_s(HazardFile, "%d", &numberoftraps);
-
-	for (int i = 0; i < numberoftraps; ++i)
-	{
-		fscanf_s(HazardFile, "%d", &traps[i].type);
-		switch (traps[i].type)
-		{
-		case spike:
-		{
-			int j = 0;
-			for (; j < 3; ++j)
-			{
-				fscanf_s(HazardFile, "%d %d", &traps[i].x[j], &traps[i].y[j]);
-			}
-			break;
-		}
-		case crusher:
-		{
-			int j = 0;
-			for (; j < 3; ++j)
-			{
-				fscanf_s(HazardFile, "%d %d", &traps[i].x[j], &traps[i].y[j]);
-			}
-			break;
-		}
-		case shooter:
-		{
-			int j = 0;
-			for (; j < 3; ++j)
-			{
-				fscanf_s(HazardFile, "%d %d", &traps[i].x[j], &traps[i].y[j]);
-			}
-			break;
-		}
-		}
-	}
+	init_hazards(HazardFile, numberoftraps);
 	fclose(HazardFile);
 #pragma endregion
 #pragma endregion
 	// PLAYER INITS
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Player related
-	Init_Player(&speed, &player, &deaths);
+	Init_Player(&speed, &player, &deaths, spawn);
 #pragma endregion
 	// Game states, counters
 	/*---------------------------------------------------------------------------------------------------------------------*/
@@ -218,6 +185,9 @@ void Tutorial_Init(void)
 	transit_sprite_y = 0;
 	player_sprite_x = 0;
 	player_sprite_y = 0;
+
+	// clear anim
+	clear_timer = 0;
 
 #pragma endregion
 	// Misc settings
@@ -274,18 +244,17 @@ void Tutorial_Init(void)
 
 	// CAMERA INIT
 	/*---------------------------------------------------------------------------------------------------------------------*/
-#pragma region Camera Init
+#pragma region Camera Init + Transition Init
 
-	camera.spawnX = width * 3.5f / 10.0f; //
-	camera.spawnY = height * 0.4f; //
-	camera.width = 3.0f / 10.0f * width; //
-	camera.height = 0.2f * height; //since base is a bigger number than the top number.
-	camera.worldshiftx = 0;
-	camera.worldshifty = 0;
-	camera.prespawnX = camera.respawnX = camera.limitleftx = spawn.x - (camera.width / 2.0f);
-	camera.limitrightx = camera.limitleftx + camera.width;
-	camera.prespawnY = camera.respawnY = camera.limittop = spawn.y - (camera.height * 3.0f / 4.0f);
-	camera.limitbase = camera.limittop + camera.height;
+	Cam_Init(&camera, width, height, spawn);
+
+	playerLastX = player.x - camera.worldshiftx;
+	playerLastY = player.y - camera.worldshifty;
+	levelEnded = start;
+	scaler1 = (spawn.x + player.width / 2) - camera.worldshiftx;
+	scaler2 = (spawn.x + player.width / 2) - camera.worldshiftx;
+	scaler3 = (spawn.y + player.height / 2) - camera.worldshifty;
+	scaler4 = (spawn.y + player.height / 2) - camera.worldshifty;
 
 #pragma endregion
 }
@@ -379,7 +348,7 @@ void Tutorial_Update(void)
 			}
 
 			// Jump
-			jump(&player, movestate);
+			jump(&player, movestate, Buff[jumpBuff].state);
 
 			// window clamps (eventually World Clamps)
 			/*player.x = CP_Math_ClampFloat(player.x, 0, width - player.width);
@@ -403,7 +372,7 @@ void Tutorial_Update(void)
 				end_transition(&player, &movestate);
 			}
 			// reset with R or touch ground while movestate OnPlat
-			if (CP_Input_KeyTriggered(KEY_R) && !(player.state == Dead || player.state == Spawning) && levelstate != Cleared) {
+			if (CP_Input_KeyTriggered(KEY_K) && !(player.state == Dead || player.state == Spawning) && levelstate != Cleared) {
 				CauseOfDeath reset = (movestate == InPlat) ? Fall : Burn;
 				Kill_Player(&player, reset, &deaths);
 			}
@@ -459,7 +428,7 @@ void Tutorial_Update(void)
 							if ((player.y + player.height + 30) >= traps[trap_index].y[1]) {
 								player.y = (traps[trap_index].y[1] - player.height - 15);
 								Kill_Player(&player, Crush, &deaths);
-								printf("active\n");
+								//printf("active\n");
 							}
 						}
 
@@ -504,13 +473,13 @@ void Tutorial_Update(void)
 		//camera.limitleftx =  camera.limitleftx  + offsetX;
 		//camera.limitrightx = camera.limitrightx + offsetX;
 #pragma region Camera
+
+		CamShift(&camera, mouseX, mouseY, width, height);
 		if (!(player.state == Dead)) {
+
 			playerCamColl(&player, &camera); //functionised my camera shift. 
 			//where worldshiftx is now the modifyable for all objects
 		}
-		CP_Settings_NoFill();
-		CP_Settings_RectMode(CP_POSITION_CORNER);
-		//CP_Graphics_DrawRect(camera.limitleftx - camera.worldshiftx, camera.limittop - camera.worldshifty, camera.width, camera.height); //code for rectangle
 	}
 #pragma endregion
 
@@ -521,10 +490,10 @@ void Tutorial_Update(void)
 		// TOOLTIPS
 		CP_Settings_TextSize(25);
 		CP_Settings_Fill(CP_Color_Create(50, 50, 50, 255));
-		CP_Font_DrawTextBox("A and D keys to move left and right.\nSPACE to jump\n\nR to COMMIT SUICIDE", 50 - camera.worldshiftx, 150 - camera.worldshifty, 300);
-		CP_Font_DrawTextBox("E key to crawl on the side of syrup-covered platforms >:)\n\nWASD to crawl around\nNOTE: if you run out of stamina, you DIE", 650 - camera.worldshiftx, 250 - camera.worldshifty, 250);
-		CP_Font_DrawTextBox("Move into a wall to slide, jump while sliding to perform a walljump!", 1050 - camera.worldshiftx, 200 - camera.worldshifty, 250);
-		CP_Font_DrawTextBox("Touch a closed waffle press to set your new checkpoint!\n\nTry it by\nCOMMITTING SUICIDE (R)", 1400 - camera.worldshiftx, 550 - camera.worldshifty, 250);
+		CP_Font_DrawTextBox("Move your mouse to the edges of the screen to look around,\nR to reset the camera\n\nA and D keys to move left and right.\nSPACE to jump\n\nK to KILL the waffle", 50 - camera.worldshiftx, 50 - camera.worldshifty, 300);
+		CP_Font_DrawTextBox("E key to ENTER the side of syrup-covered platforms\n\nWASD to crawl around >:)\nNOTE: if you run out of stamina, you DIE", 650 - camera.worldshiftx, 250 - camera.worldshifty, 250);
+		CP_Font_DrawTextBox("Move into a wall to slide, jump while sliding against a wall (holding movement input) to perform a walljump!", 1050 - camera.worldshiftx, 150 - camera.worldshifty, 250);
+		CP_Font_DrawTextBox("Touch a closed waffle press to set your new checkpoint!\n\nTry it by\nKILLING the waffle (K)", 1500 - camera.worldshiftx, 550 - camera.worldshifty, 250);
 		CP_Font_DrawTextBox("Land on the golden plate to complete the level :D", 2350 - camera.worldshiftx, 700 - camera.worldshifty, 250);
 
 	// Platforms
@@ -546,15 +515,17 @@ void Tutorial_Update(void)
 			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, 0, 0, 32, 32, 255);
 		}
 		else {
-			if (clear_timer <= 3) {
+			if (clear_timer <= 5) {
 				clear_timer += 6 * dt;
 			}
-			int sprite_x = 32 + (32 * (int)clear_timer);
+			int sprite_x = ((int)clear_timer <= 3) ? 32 + (32 * (int)clear_timer) : 32 * 4;
 			CP_Image_DrawSubImage(goal_sprite, goalx - camera.worldshiftx, goaly - camera.worldshifty, 100, 100, sprite_x, 0, sprite_x + 32, 32, 255);
 		}
 
 		if (AreSquaresIntersecting(player.x - 15, player.y - 15, player.height + 30, player.width + 30, goalx, goaly, 50, 50)) {
-			levelstate = Cleared;
+			if (levelstate != EndLevel) {
+				levelstate = Cleared;
+			}
 		}
 
 		// Checkpoint
@@ -607,6 +578,9 @@ void Tutorial_Update(void)
 			}
 		}
 
+		// Camera Shift Highlight
+		CamHighLight(&camera, mouseX, mouseY, width, height);
+
 		// DEATH COUNTER DRAWING
 		CP_Settings_Fill(black);
 		CP_Settings_TextSize(50);
@@ -627,41 +601,44 @@ void Tutorial_Update(void)
 
 	// LEVEL COMPLETE PAGE
 	if (levelstate == Cleared) {
-		CP_Settings_RectMode(CP_POSITION_CENTER);
-		CP_Settings_Fill(pausebg);
-		CP_Graphics_DrawRect(width / 2, height / 2, width, height);
-		CP_Settings_Fill(wall);
-		CP_Graphics_DrawRect(width / 2, 2 * height / 5, 1200, 500);
-		CP_Settings_Fill(black);
-		CP_Settings_TextSize(100);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("TUTORIAL COMPLETE", width / 2, 200);
+		if (clear_timer >= 5) {
+			CP_Settings_RectMode(CP_POSITION_CENTER);
+			CP_Settings_Fill(pausebg);
+			CP_Graphics_DrawRect(width / 2, height / 2, width, height);
+			CP_Settings_Fill(wall);
+			CP_Graphics_DrawRect(width / 2, 2 * height / 5, 1200, 500);
+			CP_Settings_Fill(black);
+			CP_Settings_TextSize(100);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+			CP_Font_DrawText("TUTORIAL COMPLETE", width / 2, 200);
 
 
-		CP_Settings_TextSize(50);
-		// draw resume button
-		TextBoxCreate(600, 520, 250, 100, "LEVELS", red);
-		int ResumeClick = IsAreaClicked(600, 520, 250, 100, mouseX, mouseY); //if mouse is over button
-		if (ResumeClick) {
-			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
-			CP_Graphics_DrawRect(600, 520, 250, 100);
-			if (CP_Input_MouseClicked()) { //if LMB1 pressed
-				CP_Engine_SetNextGameState(LSelect_Init, LSelect_Update, LSelect_Exit);
+			CP_Settings_TextSize(50);
+			// draw resume button
+			TextBoxCreate(600, 520, 250, 100, "LEVELS", red);
+			int ResumeClick = IsAreaClicked(600, 520, 250, 100, mouseX, mouseY); //if mouse is over button
+			if (ResumeClick) {
+				CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+				CP_Graphics_DrawRect(600, 520, 250, 100);
+				if (CP_Input_MouseClicked()) { //if LMB1 pressed
+					levelEnded = end;
+					levelstate = EndLevel;
+				}
 			}
-		}
 
-		// draw quit button
-		TextBoxCreate(1000, 520, 250, 100, "QUIT", red);
-		int QuitClick = IsAreaClicked(1000, 520, 250, 100, mouseX, mouseY); //if mouse is over button
-		if (QuitClick) {
-			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
-			CP_Graphics_DrawRect(1000, 520, 250, 100);
-			if (CP_Input_MouseClicked()) { //if LMB1 pressed
-				CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
+			// draw quit button
+			TextBoxCreate(1000, 520, 250, 100, "QUIT", red);
+			int QuitClick = IsAreaClicked(1000, 520, 250, 100, mouseX, mouseY); //if mouse is over button
+			if (QuitClick) {
+				CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
+				CP_Graphics_DrawRect(1000, 520, 250, 100);
+				if (CP_Input_MouseClicked()) { //if LMB1 pressed
+					CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
+				}
 			}
-		}
 
-		CP_Settings_RectMode(CP_POSITION_CORNER);
+			CP_Settings_RectMode(CP_POSITION_CORNER);
+		}
 	}
 
 	// PAUSE MENU
@@ -676,15 +653,44 @@ void Tutorial_Update(void)
 	else if (levelstate == InQuit) {
 		QuitMenu();
 	}
+	//LEVEL TRANSITION EFFECTS
+	//keep the reset code bc if removed it leaves a black border around the screen grrrr RAA RAA WOOF WOOF WOOF
+	//printf("scaler1: %lf | scaler2: %lf | scaler3: %lf | scaler4: %lf\n", scaler1, scaler2, scaler3, scaler4);
+	//printf("playerlastx: %lf\n", playerLastX);
+	playerLastX = player.x - camera.worldshiftx;
+	playerLastY = player.y - camera.worldshifty;
+
+	if (levelEnded == end) {
+		canMove = 0;
+		scaler1 += (playerLastX + player.width / 2) * dt;
+		scaler2 += (width - playerLastX + player.width / 2) * dt;
+		scaler3 += (playerLastY + player.height / 2) * dt;
+		scaler4 += (height - playerLastY + player.height / 2) * dt;
+		TransitionInBoxEffect(playerLastX, playerLastY, 0, width, 0, height, scaler1, scaler2, scaler3, scaler4);
+
+		if (scaler1 >= playerLastX) {
+			levelEnded = start;
+			CP_Engine_SetNextGameState(LSelect_Init, LSelect_Update, LSelect_Exit);
+		}
+	}
+
+	if (levelEnded == start) {
+		canMove = 1;
+		scaler1 -= (playerLastX + player.width / 2) * dt;
+		scaler2 -= (width - playerLastX + player.width / 2) * dt;
+		scaler3 -= (playerLastY + player.height / 2) * dt;
+		scaler4 -= (height - playerLastY + player.height / 2) * dt;
+		TransitionInBoxEffect(playerLastX, playerLastY, 0, width, 0, height, scaler1, scaler2, scaler3, scaler4);
+
+		if (scaler1 <= 0 && scaler2 <= 0 && scaler3 <= 0 && scaler4 <= 0) {
+			levelEnded = reset;
+		}
+	}
+	if (levelEnded == reset) {
+		scaler1 = scaler2 = scaler3 = scaler4 = 0;
+	}
 #pragma endregion
 
-	// Back to main menu
-	if (CP_Input_KeyTriggered(KEY_Q) && levelstate == NotPaused) {
-		levelstate = InQuit;
-	}
-	else if (CP_Input_KeyTriggered(KEY_Q) && levelstate == InQuit) {
-		levelstate = NotPaused;
-	}
 }
 
 void Tutorial_Exit(void)

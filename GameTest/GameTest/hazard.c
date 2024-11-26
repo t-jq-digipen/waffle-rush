@@ -1,7 +1,5 @@
 #pragma once
-#include "hazard.h"
-#include "cprocessing.h"
-#include <stdbool.h>
+#include "globals.h"
 
 // Helper function to check if a point is inside the square
 bool is_point_in_square(Point p, Point squareTopLeft, float width, float height) {
@@ -75,10 +73,10 @@ int crusher_direction(hazard crusher, Player p) {
 		float px = (p.x + p.width / 2);
 		float py = (p.y + p.height / 2);
 		// how much the player goes into the platform
-		float leftcoll = (abs)((px + p.width/2) - crusher.x[0]);
-		float rightcoll = (abs)(crusher.x[1] - (px - p.width / 2));
-		float topcoll = (abs)((py + p.height/2) - crusher.y[0]);
-		float botcoll = (abs)(crusher.y[2] - (py - p.height / 2));
+		float leftcoll = (fabs)((px + p.width/2) - crusher.x[0]);
+		float rightcoll = (fabs)(crusher.x[1] - (px - p.width / 2));
+		float topcoll = (fabs)((py + p.height/2) - crusher.y[0]);
+		float botcoll = (fabs)(crusher.y[2] - (py - p.height / 2));
 
 		// return lower value for horizontal/vertical
 		float horizontal = (leftcoll < rightcoll) ? leftcoll : rightcoll;
@@ -88,7 +86,7 @@ int crusher_direction(hazard crusher, Player p) {
 		return (horizontal < vertical) ? 1 : 2;
 	}
 
-void reset_hazards(hazard* traps) {
+void reset_hazards() {
     for (int i = 0; i < MAX_TRAPS; i++) {
         for (int j = 0; j < 3; j++) {
             traps[i].x[j] = 0;
@@ -98,3 +96,119 @@ void reset_hazards(hazard* traps) {
     }
 }
 
+void init_hazards(FILE* HazardFile, int numberoftraps) {
+    for (int hazard_index = 0; hazard_index < numberoftraps; ++hazard_index) {
+        fscanf_s(HazardFile, "%d", &traps[hazard_index].type);
+        switch (traps[hazard_index].type)
+        {
+        case spike:
+        {
+			for (int coordinate_index = 0; coordinate_index < 3; ++coordinate_index)
+			{
+				fscanf_s(HazardFile, "%f %f", &traps[hazard_index].x[coordinate_index], &traps[hazard_index].y[coordinate_index]);
+			}
+			fscanf_s(HazardFile, "%d", &traps[hazard_index].direction);
+			break;
+            
+        }
+        case crusher:
+        {
+            for (int coordinate_index = 0; coordinate_index < 3; ++coordinate_index)
+            {
+                fscanf_s(HazardFile, "%f %f", &traps[hazard_index].x[coordinate_index], &traps[hazard_index].y[coordinate_index]);
+            }
+            break;
+        }
+        case shooter:
+        {
+            for (int coordinate_index = 0; coordinate_index < 3; ++coordinate_index)
+            {
+                fscanf_s(HazardFile, "%f %f", &traps[hazard_index].x[coordinate_index], &traps[hazard_index].y[coordinate_index]);
+            }
+            break;
+        }
+        }
+    }
+}
+
+void hazard_update() {
+	//declaring top left of square for square triangle collision
+	Point squareTopLeft = { player.x, player.y };
+	for (int trap_index = 0; trap_index < numberoftraps; trap_index++) {
+		switch (traps[trap_index].type) {
+		case spike: {
+			Point A = { traps[trap_index].x[0], traps[trap_index].y[0] };
+			Point B = { traps[trap_index].x[1], traps[trap_index].y[1] };
+			Point C = { traps[trap_index].x[2], traps[trap_index].y[2] };
+
+			if (check_square_triangle_collision(squareTopLeft, player.width, player.height, A, B, C)) {
+				Kill_Player(&player, Burn, &deaths);
+			}
+			break;
+		}
+		case crusher: {
+			float crushervely;
+			//CRUSHER MOVEMENT
+			// crusherstate = 0 if going down and crusherstate = 1 when going up
+			if (crusherstate == 0) {
+				crushervely = 1000.f * dt;
+				traps[trap_index].y[2] += crushervely;
+				if (traps[trap_index].y[2] > traps[trap_index].y[1]) {
+					traps[trap_index].y[2] = traps[trap_index].y[1];
+					crusherstate = 1;
+				}
+				// if the player hits the crusher at the bottom, add death and reset
+				if (AreSquaresIntersecting(player.x, player.y, player.width, player.height, traps[trap_index].x[0], traps[trap_index].y[0], traps[trap_index].x[1] - traps[trap_index].x[0], traps[trap_index].y[2] - traps[trap_index].y[0]) && !(player.state == Dead || player.state == Spawning)) {
+					if (crusher_direction(traps[trap_index], player) == 1) {
+						if (player.x >= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+							player.x = traps[trap_index].x[1];
+							player.movex = 0;
+						}
+						else if (player.x <= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+							player.x = traps[trap_index].x[0] - player.width;
+							player.movex = 0;
+						}
+					}
+					else if (crusher_direction(traps[trap_index], player) == 2) {
+						player.y = traps[trap_index].y[2];
+						player.movey = 0;
+						if ((player.y + player.height + 30) >= traps[trap_index].y[1]) {
+							player.y = (traps[trap_index].y[1] - player.height - 15);
+							Kill_Player(&player, Crush, &deaths);
+						}
+					}
+
+				}
+			}
+			if (crusherstate == 1) {
+				crushervely = -100.0f * dt;
+				traps[trap_index].y[2] += crushervely;
+				if (traps[trap_index].y[2] < traps[trap_index].y[0]) {
+					traps[trap_index].y[2] = traps[trap_index].y[0];
+					crusherstate = 0;
+				}
+				//if the player hits the crusher as it goes up, no death but cant go in
+				if (AreSquaresIntersecting(player.x, player.y, player.width, player.height, traps[trap_index].x[0], traps[trap_index].y[0], traps[trap_index].x[1] - traps[trap_index].x[0], traps[trap_index].y[2] - traps[trap_index].y[0]) && !(player.state == Dead || player.state == Spawning)) {
+					if (crusher_direction(traps[trap_index], player) == 1) {
+						if (player.x >= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+							player.x = traps[trap_index].x[1];
+							player.movex = 0;
+						}
+						else if (player.x <= ((traps[trap_index].x[1] + traps[trap_index].x[0]) / 2.f)) {
+							player.x = traps[trap_index].x[0] - player.width;
+							player.movex = 0;
+						}
+					}
+					else if (crusher_direction(traps[trap_index], player) == 2) {
+						player.y = traps[trap_index].y[2];
+						player.movey = 0;
+					}
+
+				}
+			}
+			break;
+		}
+		default: {}
+		}
+	}
+}

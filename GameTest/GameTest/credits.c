@@ -52,24 +52,24 @@ void Credits_Update(void) {
 	//header text
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_TextSize(150);
-	CP_Font_DrawText("CREDITS:", width / 2, 100);
+	CP_Font_DrawText("CREDITS:", (float)width / 2.0f, (float)100);
 
 	CP_Settings_TextSize(100);
 	char credits[500] = { 0 };
 
 	for (int i = 0; i < num_names; i++) {
 		sprintf_s(credits, sizeof(credits), names[i].name);
-		CP_Font_DrawText(credits, width / 2, 250 + i * 100);
+		CP_Font_DrawText(credits, (float)width / 2.0f, (float)(250 + (i * 100)));
 	}
 
 	CP_Settings_TextSize(150);
 
 	//back to main menu button
-	TextBoxCreate(width / 2, height - 100, 400, 150, "BACK", button_color);
-	int ExitClick = IsAreaClicked(width / 2, height - 100, 400, 150, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate((float)(width / 2), (float)(height - 100), 400.0f, 150.0f, "BACK", button_color);
+	int ExitClick = IsAreaClicked((float)(width / 2), (float)(height - 100), 400.0f, 150.0f, mouseX, mouseY); //if mouse is over button
 	if (ExitClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(width / 2, height - 100, 400, 150);
+		CP_Graphics_DrawRect((float)(width / 2), (float)(height - 100), 400.0f, 150.0f);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
 			CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit); //return to main menu
 		}

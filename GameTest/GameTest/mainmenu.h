@@ -10,13 +10,9 @@
 #pragma once
 #include "LevelSelect.h"
 #include "credits.h"
-#include "options.h"
+#include "globals.h"
 
 void Main_Menu_Init(void);
 void Main_Menu_Update(void);
 void Main_Menu_Exit(void);
 
-
-void MainMenu1_Init(void);
-void MainMenu1_Update(void);
-void MainMenu1_Exit(void);

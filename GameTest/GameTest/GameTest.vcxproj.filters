@@ -45,9 +45,6 @@
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="platform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,30 +78,21 @@
     <ClCompile Include="Level3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="playerbuff.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainmenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="platform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LevelSelect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="hazard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="credits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="options.h">
+    <ClInclude Include="globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -193,5 +181,6 @@
     <Text Include="..\Assets\Level_4\Wall.txt">
       <Filter>Resource Files\Levels\Level_4</Filter>
     </Text>
+    <Text Include="..\Assets\Options.txt" />
   </ItemGroup>
 </Project>

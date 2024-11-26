@@ -9,7 +9,7 @@
 //---------------------------------------------------------
 #pragma once
 #include "mainmenu.h"
-#include "utils.h"
+#include "globals.h"
 
 #define name_length 20
 

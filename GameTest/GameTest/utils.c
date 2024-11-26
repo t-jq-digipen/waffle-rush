@@ -10,8 +10,7 @@
 //---------------------------------------------------------
 
 #pragma once
-#include "utils.h"
-#include "platform.h"
+#include "globals.h"
 
 // check if a position is within a rectangle
 //
@@ -31,8 +30,8 @@ int IsAreaClicked(float area_center_x, float area_center_y, float area_width, fl
 }
 
 int IsAreaCornerClicked(float area_corner_x, float area_corner_y, float area_width, float area_height, float click_x, float click_y) {
-	if (click_x > (area_corner_x - area_width / 2) && click_x < (area_corner_x + area_width / 2) &&
-		click_y >(area_corner_y - area_height / 2) && click_y < (area_corner_y + area_height / 2)) {
+	if (click_x > (area_corner_x) && click_x < (area_corner_x + area_width) &&
+		click_y >(area_corner_y) && click_y < (area_corner_y + area_height)) {
 		return 1;
 	}
 	return 0;
@@ -81,14 +80,10 @@ int AreSquaresIntersecting(float s1_x, float s1_y, float s1_w, float s1_h, float
 	float s2_cy = s2_y + s2_h / 2; // square 2 center y
 	float widthtouch = s1_w / 2 + s2_w / 2;
 	float heighttouch = s1_h / 2 + s2_h / 2;
-	if (abs(s2_cx - s1_cx) <= widthtouch && (abs(s2_cy - s1_cy) <= heighttouch)) {
+	if (fabs(s2_cx - s1_cx) <= widthtouch && (fabs(s2_cy - s1_cy) <= heighttouch)) {
 		return 1;
 	}
 	return 0;
-}
-
-int IsTriangleClicked(float tri_x1, float tri_y1, float tri_x2, float tri_y2, float tri_x3, float tri_y3, float click_x, float click_y) {
-
 }
 
 // create red box with black text
@@ -111,8 +106,8 @@ void TextBoxCreate(float pos_x, float pos_y, float size_x, float size_y, const c
 // 
 // pos_x1, pos_y1 - position of top left corner
 // pos_x2, pos_y2 - position of bottom right corner
-// stat - current health
-// max_stat - max health
+// stat - current stat
+// max_stat - max stat
 //
 void DrawStatBar(float pos_x1, float pos_y1, float pos_x2, float pos_y2, float stat, float max_stat) {
 	// assign total width, height, and width of health bar
@@ -125,30 +120,7 @@ void DrawStatBar(float pos_x1, float pos_y1, float pos_x2, float pos_y2, float s
 	// draw the rectangle
 	CP_Graphics_DrawRect(pos_x1, pos_y1, statwidth, height);
 }
-// draw segmented stat bar
-// 
-// pos_x1, pos_y1 - position of top left corner
-// pos_x2, pos_y2 - position of bottom right corner
-// stat - current health
-// max_stat - max health
-//
-void DrawHPBar2(float pos_x1, float pos_y1, float pos_x2, float pos_y2, float hp, float maxhp) {
-	//array of stat in 10% chunks
-	int hpbar[10] = {0, maxhp / 10, 2 * maxhp / 10, 3 * maxhp / 10, 4 * maxhp / 10, 5 * maxhp / 10, 6 * maxhp / 10, 7 * maxhp / 10, 8 * maxhp / 10 , 9 * maxhp / 10}; //array 10% blocks
-	//size of full bar
-	float width = pos_x2 - pos_x1;
-	float height = pos_y2 - pos_y1;
-	//segment width and interval
-	float segmentwidth = width / 10;
-	float segmentinterval = 15;
-	//for loop to check stat 10% chunks
-	for (int i = 0; i < 10; ++i) {
-		if (hp > (hpbar[i])+maxhp/20) { //if stat>10% interval, draw 10% chunk
-			CP_Graphics_DrawRect(pos_x1 + (i * (segmentwidth + segmentinterval/10)), pos_y1 + 100, segmentwidth - segmentinterval, height);
-		}
 
-	}
-}
 
 int SquareTriangleCollide (float squarex, float squarey, float squarewidth, float squareheight, float tri1x,float tri1y, float tri2x, float tri2y, float tri3x, float tri3y) {
 	// is Triangle corner in square?
@@ -180,7 +152,7 @@ int IncrementScore(int startScore, int endScore, float *timeElapsed, float dt) {
 	return score;
 }
 
-int TransitionInBoxEffect(float playerX, float playerY, float boxX1, float boxX2, float boxY1, float boxY2, float scaler1, float scaler2, float scaler3, float scaler4) {
+void TransitionInBoxEffect(float playerX, float playerY, float boxX1, float boxX2, float boxY1, float boxY2, float scaler1, float scaler2, float scaler3, float scaler4) {
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_RectMode(CP_POSITION_CORNER);
 
@@ -190,7 +162,7 @@ int TransitionInBoxEffect(float playerX, float playerY, float boxX1, float boxX2
 	CP_Graphics_DrawRect(boxX1, boxY2, boxX2 - boxX1, -scaler4);
 }
 
-int TransitionOutBoxEffect(float playerX, float playerY, float boxX1, float boxX2, float boxY1, float boxY2, float scaler1, float scaler2, float scaler3, float scaler4) {
+void TransitionOutBoxEffect(float playerX, float playerY, float boxX1, float boxX2, float boxY1, float boxY2, float scaler1, float scaler2, float scaler3, float scaler4) {
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_RectMode(CP_POSITION_CORNER);
 

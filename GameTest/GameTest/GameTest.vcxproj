@@ -13,7 +13,6 @@
   <ItemGroup>
     <ClCompile Include="camera.c" />
     <ClCompile Include="credits.c" />
-    <ClCompile Include="game.c" />
     <ClCompile Include="hazard.c" />
     <ClCompile Include="Level1.c" />
     <ClCompile Include="Level2.c" />
@@ -24,18 +23,15 @@
     <ClCompile Include="mainmenu1.c" />
     <ClCompile Include="options.c" />
     <ClCompile Include="platform.c" />
+    <ClCompile Include="playerbuff.c" />
     <ClCompile Include="Tutorial.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
     <ClInclude Include="credits.h" />
-    <ClInclude Include="hazard.h" />
+    <ClInclude Include="globals.h" />
     <ClInclude Include="LevelSelect.h" />
-    <ClInclude Include="options.h" />
-    <ClInclude Include="platform.h" />
     <ClInclude Include="mainmenu.h" />
-    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\Assets\Credits.txt" />
