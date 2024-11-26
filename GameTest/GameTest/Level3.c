@@ -526,7 +526,6 @@ void L3_Update(void)
 			default: {}
 			}
 		}
-//SHOOTER LOGIC
 
 #pragma endregion
 
