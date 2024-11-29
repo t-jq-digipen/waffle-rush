@@ -10,7 +10,7 @@
 //---------------------------------------------------------
 
 #pragma once
-#include "camera.h"
+#include "globals.h"
 
 void playerCamColl(Player *player, Camera* camera) {
 	float playerR = player->x + player->width;
@@ -40,21 +40,50 @@ void playerCamColl(Player *player, Camera* camera) {
 
 
 void CamShift(Camera* camera, float mouse_x, float mouse_y, float screen_width, float screen_height) {
+
+	int shifting = 0;
 	// left
-	if (IsAreaCornerClicked(0, 0, 0.1f * screen_width, screen_height, mouse_x, mouse_y) && camera->camshiftx > -screen_width*0.6f) {
-		camera->camshiftx -= 10;
+	if (IsAreaCornerClicked(0, 0, 0.1f * screen_width, screen_height, mouse_x, mouse_y)) {
+		if (camera->camshiftx > -screen_width * 0.6f) {
+			camera->camshiftx -= 10.0f;
+		}
+		shifting = 1;
 	}
 	// up
-	if (IsAreaCornerClicked(0, 0, screen_width, 0.1f * screen_height, mouse_x, mouse_y) && camera->camshifty > -screen_height*0.6f) {
-		camera->camshifty -= 10;
+	if (IsAreaCornerClicked(0, 0, screen_width, 0.1f * screen_height, mouse_x, mouse_y)) {
+		if (camera->camshifty > -screen_height * 0.6f) {
+			camera->camshifty -= 10.0f;
+		}
+		shifting = 1;
 	}
 	// right
-	if (IsAreaCornerClicked(0.9f * screen_width, 0, 0.1f * screen_width, screen_height, mouse_x, mouse_y) && camera->camshiftx < screen_width*0.6f) {
-		camera->camshiftx += 10;
+	if (IsAreaCornerClicked(0.9f * screen_width, 0, 0.1f * screen_width, screen_height, mouse_x, mouse_y)) {
+		if (camera->camshiftx < screen_width * 0.6f) {
+			camera->camshiftx += 10.0f;
+		}
+		shifting = 1;
 	}
 	// down
-	if (IsAreaCornerClicked(0, 0.9f * screen_height, screen_width, 0.1f * screen_height, mouse_x, mouse_y) && camera->camshifty < screen_height*0.6f) {
-		camera->camshifty += 10;
+	if (IsAreaCornerClicked(0, 0.9f * screen_height, screen_width, 0.1f * screen_height, mouse_x, mouse_y)) {
+		if (camera->camshifty < screen_height * 0.6f) {
+			camera->camshifty += 10.0f;
+		}
+		shifting = 1;
+	}
+
+	if (!shifting) {
+		if (camera->camshiftx > 20.0f) {
+			camera->camshiftx -= 5.0f;
+		}
+		else if (camera->camshiftx < -20.0f) {
+			camera->camshiftx += 5.0f;
+		}
+		if (camera->camshifty > 20.0f) {
+			camera->camshifty -= 5.0f;
+		}
+		else if (camera->camshifty < -20.0f) {
+			camera->camshifty += 5.0f;
+		}
 	}
 
 	if (CP_Input_KeyTriggered(KEY_R)) {
@@ -100,4 +129,41 @@ void Cam_Init(Camera* camera, float screen_width, float screen_height, coords sp
 	camera->limitbase = camera->limittop + camera->height;
 	camera->worldshiftx = camera->limitleftx - camera->spawnX;
 	camera->worldshifty = camera->limittop - camera->spawnY;
+}
+
+void Guide_Arrow() {
+	if (!IsAreaCornerClicked(0, 0, width, height, goalx - camera.worldshiftx, goaly - camera.worldshifty)) {
+		float goalpointx = goalx + 50.0f - camera.worldshiftx;
+		float goalpointy = goaly + 50.0f - camera.worldshifty;
+		float goalpointspritex = (player.anim < 10.0f) ? 0.0f : 32.0f;
+		float goalpointspritey = 0.0f;
+		float goalpointrot = 0.0f;
+		if (goalpointx > 0.0f && goalpointx < width) {
+			goalpointspritey = (goalpointy < (float)(height / 2.0f)) ? 64.0f : 96.0f;
+		}
+		if (goalpointy > 0.0f && goalpointy < height) {
+			goalpointspritey = (goalpointx > (float)(width / 2.0f)) ? 0.0f : 32.0f;
+		}
+		if ((goalpointx > width || goalpointx < 0.0f) && (goalpointy > height || goalpointy < 0.0f)) {
+			if (goalpointx > 0.9f * width && goalpointy < 0.2f * height) {
+				goalpointspritey = 64.0f;
+			}
+			if (goalpointx > 0.9f * width && goalpointy > 0.8f * height) {
+				goalpointspritey = 0.0f;
+			}
+			if (goalpointx < 0.1f * width && goalpointy < 0.2f * height) {
+				goalpointspritey = 32.0f;
+			}
+			if (goalpointx < 0.1f * width && goalpointy > 0.8f * height) {
+				goalpointspritey = 96.0f;
+			}
+			goalpointrot = 45.0f;
+
+		}
+		goalpointx = CP_Math_ClampFloat(goalpointx, 0.1f * width, 0.9f * width);
+		goalpointy = CP_Math_ClampFloat(goalpointy, 0.2f * height, 0.8f * height);
+
+		CP_Image_DrawSubImageAdvanced(goal_pointer, goalpointx - 50.0f, goalpointy - 50.0f, 100.0f, 100.0f, goalpointspritex, goalpointspritey, goalpointspritex + 32.0f, goalpointspritey + 32.0f, 255, goalpointrot);
+
+	}
 }

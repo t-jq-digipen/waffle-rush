@@ -3,30 +3,14 @@
 // author:	AVID WAFFLE ENJOYERS
 // email:	-
 //
-// brief:   Declaration of various level stages and features
+// brief:   Declaration of level stages!
 //
 // Copyright © 2020 DigiPen, All rights reserved.
 //---------------------------------------------------------
 
 #pragma once
 #include "mainmenu.h"
-#include "platform.h"
 
-// time struct
-typedef struct time {
-	int minutes;
-	int seconds;
-	int millis;
-} time;
-
-// level struct
-typedef struct level {
-	int level_no;
-	int isUnlocked;
-	int isCleared;
-	int score;
-	struct time time;
-} level;
 
 void LSelect_Init(void);
 void LSelect_Update(void);
@@ -36,9 +20,6 @@ void LSelectx_Init(void);
 void LSelectx_Update(void);
 void LSelectx_Exit(void);
 
-void Game_Init(void);
-void Game_Update(void);
-void Game_Exit(void);
 
 void Tutorial_Init(void);
 void Tutorial_Update(void);
@@ -63,3 +44,10 @@ void L3_Exit(void);
 void L4_Init(void);
 void L4_Update(void);
 void L4_Exit(void);
+
+
+void L5_Init(void);
+void L5_Update(void);
+void L5_Exit(void);
+
+

@@ -17,7 +17,8 @@
     <ClCompile Include="Level1.c" />
     <ClCompile Include="Level2.c" />
     <ClCompile Include="Level3.c" />
-    <ClCompile Include="LevelSelect.c" />
+    <ClCompile Include="Level4.c" />
+    <ClCompile Include="Level5.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="mainmenu.c" />
     <ClCompile Include="mainmenu1.c" />
@@ -28,15 +29,10 @@
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
     <ClInclude Include="credits.h" />
-    <ClInclude Include="hazard.h" />
+    <ClInclude Include="globals.h" />
     <ClInclude Include="LevelSelect.h" />
-    <ClInclude Include="options.h" />
-    <ClInclude Include="platform.h" />
     <ClInclude Include="mainmenu.h" />
-    <ClInclude Include="playerbuff.h" />
-    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\Assets\Credits.txt" />
@@ -57,6 +53,10 @@
     <Text Include="..\Assets\Level_4\Hazard.txt" />
     <Text Include="..\Assets\Level_4\Platform.txt" />
     <Text Include="..\Assets\Level_4\Wall.txt" />
+    <Text Include="..\Assets\Level_5\Checkpoint.txt" />
+    <Text Include="..\Assets\Level_5\Hazard.txt" />
+    <Text Include="..\Assets\Level_5\Platform.txt" />
+    <Text Include="..\Assets\Level_5\Wall.txt" />
     <Text Include="..\Assets\Level_Select\Checkpoint.txt" />
     <Text Include="..\Assets\Level_Select\Hazard.txt" />
     <Text Include="..\Assets\Level_Select\Platform.txt" />

@@ -34,6 +34,9 @@
     <Filter Include="Resource Files\Levels\Level_4">
       <UniqueIdentifier>{62703391-d856-48a8-896d-eae0d83945dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Levels\Level_5">
+      <UniqueIdentifier>{4079ea34-3446-48ee-9f45-9362304872c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -45,16 +48,10 @@
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="platform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Level1.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LevelSelect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hazard.c">
@@ -81,30 +78,27 @@
     <ClCompile Include="Level3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="playerbuff.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Level4.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Level5.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainmenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="platform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LevelSelect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="hazard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="credits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="options.h">
+    <ClInclude Include="globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -193,7 +187,18 @@
     <Text Include="..\Assets\Level_4\Wall.txt">
       <Filter>Resource Files\Levels\Level_4</Filter>
     </Text>
-    <Text Include="..\Assets\Level2wall.txt" />
     <Text Include="..\Assets\Options.txt" />
+    <Text Include="..\Assets\Level_5\Hazard.txt">
+      <Filter>Resource Files\Levels\Level_5</Filter>
+    </Text>
+    <Text Include="..\Assets\Level_5\Platform.txt">
+      <Filter>Resource Files\Levels\Level_5</Filter>
+    </Text>
+    <Text Include="..\Assets\Level_5\Wall.txt">
+      <Filter>Resource Files\Levels\Level_5</Filter>
+    </Text>
+    <Text Include="..\Assets\Level_5\Checkpoint.txt">
+      <Filter>Resource Files\Levels\Level_5</Filter>
+    </Text>
   </ItemGroup>
 </Project>

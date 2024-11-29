@@ -9,9 +9,11 @@
 // Copyright © 2020 DigiPen, All rights reserved.
 //---------------------------------------------------------
 
-#include "options.h"
+#include "globals.h"
+#include "LevelSelect.h"
 
 CP_Font exo;
+CP_Sound music;
 
 void Options_Init(void) {
 
@@ -41,10 +43,10 @@ void Options_Init(void) {
 	icon2_height = 70.0f;
 
 	// set position for icons
-	icon_bgm_x = CP_System_GetWindowWidth() / 2;
-	icon_bgm_y = CP_System_GetWindowHeight() / 3;
-	icon_se_x = CP_System_GetWindowWidth() / 2;
-	icon_se_y = CP_System_GetWindowHeight() / 2;
+	icon_bgm_x = (float)(CP_System_GetWindowWidth() / 2);
+	icon_bgm_y = (float)(CP_System_GetWindowHeight() / 3);
+	icon_se_x = (float)(CP_System_GetWindowWidth() / 2);
+	icon_se_y = (float)(CP_System_GetWindowHeight() / 2);
 }
 
 void Options_Update(void) {
@@ -64,14 +66,14 @@ void Options_Update(void) {
 
 	//header text
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(100);
+	CP_Settings_TextSize(100.0f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText("OPTIONS", width / 2, 100);
+	CP_Font_DrawText("OPTIONS", width / 2.0f, 100.0f);
 
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Settings_TextSize(70);
-	CP_Font_DrawText("BGM Volume", width / 16, height / 3);
-	CP_Font_DrawText("Sound Volume", width / 16, height / 2);
+	CP_Settings_TextSize(70.0f);
+	CP_Font_DrawText("BGM Volume", width / 16.0f, height / 3.0f);
+	CP_Font_DrawText("Sound Volume", width / 16.0f, height / 2.0f);
 
 	// update BGM volume
 	if (current_bgm_vol > max_bgm_vol) {
@@ -80,24 +82,29 @@ void Options_Update(void) {
 	else if (current_bgm_vol < 0) {
 		current_bgm_vol = 0.0f;
 	}
+
+	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_0, current_bgm_vol / max_bgm_vol);
+	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_1, current_se_vol / max_se_vol);
+	printf("Current BGM Volume: %lf\n", current_bgm_vol / max_bgm_vol);
+	printf("Current SE Volume: %lf\n", current_se_vol / max_se_vol);
 	
 	// lower BGM volume button
-	TextBoxCreate(icon_bgm_x - 100, icon_bgm_y, 50, 50, "-", button_color);
-	int LowerBGMClick = IsAreaClicked(icon_bgm_x - 100, icon_bgm_y, 50, 50, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(icon_bgm_x - 100.0f, icon_bgm_y, 50.0f, 50.0f, "-", button_color);
+	int LowerBGMClick = IsAreaClicked(icon_bgm_x - 100.0f, icon_bgm_y, 50.0f, 50.0f, mouseX, mouseY); //if mouse is over button
 	if (LowerBGMClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(icon_bgm_x - 100, icon_bgm_y, 50, 50);
+		CP_Graphics_DrawRect(icon_bgm_x - 100.0f, icon_bgm_y, 50.0f, 50.0f);
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) { //if LMB1 pressed
 			current_bgm_vol -= 1;
 		}
 	}
 
 	// raise BGM volume button
-	TextBoxCreate(width - 150, icon_bgm_y, 50, 50, "+", button_color);
-	int RaiseBGMClick = IsAreaClicked(width - 150, icon_bgm_y, 50, 50, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(width - 150.0f, icon_bgm_y, 50.0f, 50.0f, "+", button_color);
+	int RaiseBGMClick = IsAreaClicked(width - 150.0f, icon_bgm_y, 50.0f, 50.0f, mouseX, mouseY); //if mouse is over button
 	if (RaiseBGMClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(width - 150, icon_bgm_y, 50, 50);
+		CP_Graphics_DrawRect(width - 150.0f, icon_bgm_y, 50.0f, 50.0f);
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) { //if LMB1 pressed
 			current_bgm_vol += 1;
 		}
@@ -131,22 +138,22 @@ void Options_Update(void) {
 	}
 
 	// lower SE volume button
-	TextBoxCreate(icon_se_x - 100, icon_se_y, 50, 50, "-", button_color);
-	int LowerSEClick = IsAreaClicked(icon_se_x - 100, icon_se_y, 50, 50, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(icon_se_x - 100.0f, icon_se_y, 50.0f, 50.0f, "-", button_color);
+	int LowerSEClick = IsAreaClicked(icon_se_x - 100.0f, icon_se_y, 50.0f, 50.0f, mouseX, mouseY); //if mouse is over button
 	if (LowerSEClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(icon_se_x - 100, icon_se_y, 50, 50);
+		CP_Graphics_DrawRect(icon_se_x - 100.0f, icon_se_y, 50.0f, 50.0f);
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) { //if LMB1 pressed
 			current_se_vol -= 1;
 		}
 	}
 
 	// raise SE volume button
-	TextBoxCreate(width - 150, icon_se_y, 50, 50, "+", button_color);
-	int RaiseSEClick = IsAreaClicked(width - 150, icon_se_y, 50, 50, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(width - 150.0f, icon_se_y, 50.0f, 50.0f, "+", button_color);
+	int RaiseSEClick = IsAreaClicked(width - 150.0f, icon_se_y, 50.0f, 50.0f, mouseX, mouseY); //if mouse is over button
 	if (RaiseSEClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(width - 150, icon_se_y, 50, 50);
+		CP_Graphics_DrawRect(width - 150.0f, icon_se_y, 50.0f, 50.0f);
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) { //if LMB1 pressed
 			current_se_vol += 1;
 		}
@@ -172,22 +179,22 @@ void Options_Update(void) {
 	}
 
 	//save changes button
-	TextBoxCreate(3 * width / 8, height - 100, 300, 150, "SAVE", button_color);
-	int SaveClick = IsAreaClicked(3 * width / 8, height - 100, 300, 150, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(3 * width / 8.0f, height - 100.0f, 300.0f, 150.0f, "SAVE", button_color);
+	int SaveClick = IsAreaClicked(3.0f * width / 8.0f, height - 100.0f, 300.0f, 150.0f, mouseX, mouseY); //if mouse is over button
 	if (SaveClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(3 * width / 8, height - 100, 300, 150);
+		CP_Graphics_DrawRect(3.0f * width / 8.0f, height - 100.0f, 300.0f, 150.0f);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
 			SaveOptions(current_bgm_vol, current_se_vol);
 		}
 	}
 
 	//discard changes and return to main menu button
-	TextBoxCreate(5 * width / 8, height - 100, 300, 150, "BACK", button_color);
-	int ExitClick = IsAreaClicked(5 * width / 8, height - 100, 300, 150, mouseX, mouseY); //if mouse is over button
+	TextBoxCreate(5.0f * width / 8.0f, height - 100.0f, 300.0f, 150.0f, "BACK", button_color);
+	int ExitClick = IsAreaClicked(5.0f * width / 8.0f, height - 100.0f, 300.0f, 150.0f, mouseX, mouseY); //if mouse is over button
 	if (ExitClick) {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
-		CP_Graphics_DrawRect(5 * width / 8, height - 100, 300, 150);
+		CP_Graphics_DrawRect(5.0f * width / 8.0f, height - 100.0f, 300.0f, 150.0f);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
 			CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit); //return to main menu
 		}
@@ -198,7 +205,7 @@ void Options_Update(void) {
 }
 
 void Options_Exit(void) {
-
+	
 }
 
 // ------------------------------------------------------------------------------------------------------------------
@@ -226,6 +233,7 @@ void PauseMenu() {
 		CP_Graphics_DrawRect(400, 2 * height / 3, 300, 150);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
 			levelstate = NotPaused;
+			CP_Sound_ResumeGroup(CP_SOUND_GROUP_1);
 		}
 	}
 
@@ -275,7 +283,7 @@ void OptionsMenu() {
 	else if (current_bgm_vol < 0) {
 		current_bgm_vol = 0.0f;
 	}
-
+	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_0, current_bgm_vol / max_bgm_vol);
 
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Settings_TextSize(70);
@@ -379,7 +387,7 @@ void OptionsMenu() {
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); //highlight button
 		CP_Graphics_DrawRect(3 * width / 8, height - 250, 200, 100);
 		if (CP_Input_MouseClicked()) { //if LMB1 pressed
-			SaveOptions(current_bgm_vol, current_se_vol);
+			SaveOptionsInGame(current_bgm_vol, current_se_vol, &prev_bgm_vol, &prev_se_vol);
 		}
 	}
 
