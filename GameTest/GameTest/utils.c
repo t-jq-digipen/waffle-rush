@@ -315,33 +315,35 @@ void RENDER_ALL() {
 		AddScore(&levelScore, 10000 + (10000 - ((int)timer.seconds * 50) - ((int)timer.minutes * 3000)) - deaths * 100, &levelstate);
 		if (levelstate != EndLevel) {
 			levelstate = Cleared;
-			// if cleared for the first time, unlock the next level
-			if (levels[levelNumber - 1].isCleared == 0) {
-				levels[levelNumber - 1].isCleared = 1;
-				levels[levelNumber].isUnlocked = 1;
+			if (levelNumber != 0) {
+				// if cleared for the first time, unlock the next level
+				if (levels[levelNumber - 1].isCleared == 0) {
+					levels[levelNumber - 1].isCleared = 1;
+					levels[levelNumber].isUnlocked = 1;
+				}
+				// update high score if current score is greater than previous high score
+				if (levelScore > levels[levelNumber - 1].score) {
+					levels[levelNumber - 1].score = levelScore;
+				}
+				// update best time if current time is less than previous best time
+				if ((levels[levelNumber - 1].time.minutes == 0 && levels[levelNumber - 1].time.seconds == 0 &&
+					levels[levelNumber - 1].time.millis == 0) ||
+					(timer.minutes < levels[levelNumber - 1].time.minutes) ||
+					(timer.minutes == levels[levelNumber - 1].time.minutes && timer.seconds < levels[levelNumber - 1].time.seconds) ||
+					(timer.minutes == levels[levelNumber - 1].time.minutes && timer.seconds == levels[levelNumber - 1].time.seconds && timer.millis < levels[levelNumber - 1].time.millis)
+					) {
+					levels[levelNumber - 1].time.minutes = (int)timer.minutes;
+					levels[levelNumber - 1].time.seconds = (int)timer.seconds;
+					levels[levelNumber - 1].time.millis = (int)timer.millis;
+				}
+				// update the values in LevelSelect.txt
+				FILE* LevelFile = fopen("Assets/LevelSelect.txt", "w");
+				for (int i = 0; i < num_levels; i++) {
+					fprintf_s(LevelFile, "%d %d %d %d %02d:%02d:%02d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score,
+						levels[i].time.minutes, levels[i].time.seconds, levels[i].time.millis);
+				}
+				fclose(LevelFile);
 			}
-			// update high score if current score is greater than previous high score
-			if (levelScore > levels[levelNumber - 1].score) {
-				levels[levelNumber - 1].score = levelScore;
-			}
-			// update best time if current time is less than previous best time
-			if ((levels[levelNumber - 1].time.minutes == 0 && levels[levelNumber - 1].time.seconds == 0 &&
-				levels[levelNumber - 1].time.millis == 0) ||
-				(timer.minutes < levels[levelNumber - 1].time.minutes) ||
-				(timer.minutes == levels[levelNumber - 1].time.minutes && timer.seconds < levels[levelNumber - 1].time.seconds) ||
-				(timer.minutes == levels[levelNumber - 1].time.minutes && timer.seconds == levels[levelNumber - 1].time.seconds && timer.millis < levels[levelNumber - 1].time.millis)
-				) {
-				levels[levelNumber - 1].time.minutes = (int)timer.minutes;
-				levels[levelNumber - 1].time.seconds = (int)timer.seconds;
-				levels[levelNumber - 1].time.millis = (int)timer.millis;
-			}
-			// update the values in LevelSelect.txt
-			FILE* LevelFile = fopen("Assets/LevelSelect.txt", "w");
-			for (int i = 0; i < num_levels; i++) {
-				fprintf_s(LevelFile, "%d %d %d %d %02d:%02d:%02d\n", levels[i].level_no, levels[i].isUnlocked, levels[i].isCleared, levels[i].score,
-					levels[i].time.minutes, levels[i].time.seconds, levels[i].time.millis);
-			}
-			fclose(LevelFile);
 		}
 	}
 

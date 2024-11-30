@@ -152,7 +152,7 @@ void Tutorial_Init(void)
 	// isCleared = 0;
 
 	//// initialize level number
-	//levelNumber = 1;
+	levelNumber = 0;
 
 	//// score
 	//levelScore = 0;
@@ -449,7 +449,7 @@ void Tutorial_Update(void)
 				CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
 				CP_Graphics_DrawRect(600, 520, 250, 100);
 				if (CP_Input_MouseClicked()) { //if LMB1 pressed
-					SetNext(&LSelect_Init, &LSelect_Update, &LSelect_Exit);
+					SetNext(LSelect_Init, LSelect_Update, LSelect_Exit);
 					levelEnded = end;
 					levelstate = EndLevel;
 				}
@@ -463,6 +463,8 @@ void Tutorial_Update(void)
 				CP_Graphics_DrawRect(1000, 520, 250, 100);
 				if (CP_Input_MouseClicked()) { //if LMB1 pressed
 					CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
+					levelEnded = end;
+					levelstate = EndLevel;
 				}
 			}
 
