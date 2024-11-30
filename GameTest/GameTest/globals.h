@@ -540,15 +540,10 @@
 	// Sound files
 	CP_Sound music;
 	CP_Sound sfx;
-	CP_Sound wafflemachine;
-	CP_Sound wafflemachine;
-=========
-	CP_Sound wafflemachine;
-=========
 
 	// Reset pointers
 	FunctionPtr reset_init, reset_update, reset_exit;
->>>>>>>>> Temporary merge branch 2
+	CP_Sound wafflemachine;
 #pragma endregion VARIABLES
 /*---------------------------------------------------------------------------------------------------------*/
 

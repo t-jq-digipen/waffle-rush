@@ -121,7 +121,6 @@ void Main_Menu_Update(void)
 		CP_Graphics_ClearBackground(bg);
 
 		// set volumes
-		AudioPitch();
 		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_0, current_bgm_vol / 100.0f);
 
 		// set text size

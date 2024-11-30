@@ -573,7 +573,7 @@ void L2_Update(void)
 					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
 					CP_Graphics_DrawRect(500, 720, 250, 100);
 					if (CP_Input_MouseClicked()) { //if LMB1 pressed
-						SetNext(L3_Init, L3_Update, L3_Exit);
+						SetNext(&L3_Init, &L3_Update, &L3_Exit);
 					}
 				}
 
@@ -595,7 +595,7 @@ void L2_Update(void)
 					CP_Settings_Fill(CP_Color_Create(255, 255, 255, 50)); // highlight button
 					CP_Graphics_DrawRect(1100, 720, 250, 100);
 					if (CP_Input_MouseClicked()) { //if LMB1 pressed
-						SetNext(LSelect_Init, LSelect_Update, LSelect_Exit);
+						SetNext(&LSelect_Init, &LSelect_Update, &LSelect_Exit);
 					}
 				}
 
