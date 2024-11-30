@@ -31,7 +31,7 @@ void LSelect_Init(void)
 	/*---------------------------------------------------------------------------------------------------------------------*/
 #pragma region Assets
 	// load font
-	text				= CP_Font_Load("Assets/Exo2-Regular.ttf");
+	text				= CP_Font_Load("Assets/Better VCR 6.1.ttf");
 
 	// loads images (all original assets woooo lets goooo)
 	Load_Images();
@@ -224,8 +224,8 @@ void LSelect_Update(void)
 	//printf("camshiftx %f | camshifty %f | worldx %f | worldy %f\n", camera.camshiftx, camera.camshifty, camera.worldshiftx, camera.worldshifty);
 	// background
 	CP_Graphics_ClearBackground(bg);
-
 	// set volumes
+
 	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_0, current_bgm_vol / 100.0f);
 
 	// getdt
@@ -360,15 +360,15 @@ void LSelect_Update(void)
 	CP_Settings_Fill(black);
 
 	//this will be replaced with an actual logo ideally
-	CP_Settings_TextSize(120);
+	CP_Settings_TextSize(100);
 	CP_Font_DrawText("WAFFLE RUSH WOOOOOOOO", -800.0f - camera.worldshiftx, 300.0f - camera.worldshifty);
 	CP_Font_DrawText("-->", -800.0f - camera.worldshiftx, 400.0f - camera.worldshifty);
 	CP_Settings_TextSize(50);
-	CP_Font_DrawText("WRONG WAY", -1750.0f - camera.worldshiftx, 800.0f - camera.worldshifty);
+	CP_Font_DrawText("WRONG WAY", -1750.0f - camera.worldshiftx, 1500.0f - camera.worldshifty);
 	CP_Settings_TextSize(30);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText("INSTRUCTIONS:", -500.0f - camera.worldshiftx, 400.0f - camera.worldshifty);
-	CP_Font_DrawTextBox("WASD to move\nE to enter a level,\ncrawl all the way down to start!", -500.0f - camera.worldshiftx, 450.0f - camera.worldshifty, 500.0f);
+	CP_Font_DrawText("INSTRUCTIONS:", -600.0f - camera.worldshiftx, 400.0f - camera.worldshifty);
+	CP_Font_DrawTextBox("WASD to move\nE to enter a level,\ncrawl all the way down to start!", -600.0f - camera.worldshiftx, 450.0f - camera.worldshifty, 500.0f);
 
 	
 	float displaysprite_x = ((int)player.anim % 2 == 0) ? 36.0f : 54.0f;
@@ -376,7 +376,7 @@ void LSelect_Update(void)
 
 
 
-	CP_Settings_TextSize(70.0f);
+	CP_Settings_TextSize(50.0f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Font_DrawText("TUTORIAL", Tutorial.posx + Tutorial.width / 2.0f - camera.worldshiftx, Tutorial.height * 5.0f - camera.worldshifty);
 	CP_Font_DrawText("Level 1", level1.posx + level1.width / 2.0f - camera.worldshiftx, level1.height * 5.0f - camera.worldshifty);
@@ -384,8 +384,6 @@ void LSelect_Update(void)
 	CP_Font_DrawText("Level 3", level3.posx + level3.width / 2.0f - camera.worldshiftx, level3.height * 5.0f - camera.worldshifty);
 	CP_Font_DrawText("Level 4", level4.posx + level4.width / 2.0f - camera.worldshiftx, level4.height * 5.0f - camera.worldshifty);
 	CP_Font_DrawText("Level 5", level5.posx + level5.width / 2.0f - camera.worldshiftx, level5.height * 5.0f - camera.worldshifty);
-
-
 
 
 	// Text transition (when player is touching the platform before entering each level)
@@ -515,6 +513,31 @@ void LSelect_Update(void)
 
 	CP_Settings_Stroke(black);
 
+	//Guide for InPlat
+#pragma region InPlatGuide
+	if (player.y + 15 > Tutorial.posy) {
+		float goalpointspritex = (player.anim < 10.0f) ? 0.0f : 32.0f;
+		float goalpointspritey = 96.0f;
+		if (player.x >= Tutorial.posx && player.x <= Tutorial.posx + Tutorial.width) {
+			CP_Image_DrawSubImage(goal_pointer, Tutorial.posx + Tutorial.width / 4 - camera.worldshiftx, Tutorial.posy - camera.worldshifty + Tutorial.height + 50, 100, 100, goalpointspritex, goalpointspritey, goalpointspritex + 32, goalpointspritey + 32, 190);
+		}
+		if (player.x >= level1.posx && player.x <= level1.posx + level1.width) {
+			CP_Image_DrawSubImage(goal_pointer, level1.posx + level1.width / 4 - camera.worldshiftx, level1.posy - camera.worldshifty + level1.height + 50, 100, 100, goalpointspritex, goalpointspritey, goalpointspritex + 32, goalpointspritey + 32, 190);
+		}
+		if (player.x >= level2.posx && player.x <= level2.posx + level2.width) {
+			CP_Image_DrawSubImage(goal_pointer, level2.posx + level2.width / 4 - camera.worldshiftx, level2.posy - camera.worldshifty + level2.height + 50, 100, 100, goalpointspritex, goalpointspritey, goalpointspritex + 32, goalpointspritey + 32, 190);
+		}
+		if (player.x >= level3.posx && player.x <= level3.posx + level3.width) {
+			CP_Image_DrawSubImage(goal_pointer, level3.posx + level3.width / 4 - camera.worldshiftx, level3.posy - camera.worldshifty + level3.height + 50, 100, 100, goalpointspritex, goalpointspritey, goalpointspritex + 32, goalpointspritey + 32, 190);
+		}
+		if (player.x >= level4.posx && player.x <= level4.posx + level4.width) {
+			CP_Image_DrawSubImage(goal_pointer, level4.posx + level4.width / 4 - camera.worldshiftx, level4.posy - camera.worldshifty + level4.height + 50, 100, 100, goalpointspritex, goalpointspritey, goalpointspritex + 32, goalpointspritey + 32, 190);
+		}
+		if (player.x >= level5.posx && player.x <= level5.posx + level5.width) {
+			CP_Image_DrawSubImage(goal_pointer, level5.posx + level5.width / 4 - camera.worldshiftx, level5.posy - camera.worldshifty + level5.height + 50, 100, 100, goalpointspritex, goalpointspritey, goalpointspritex + 32, goalpointspritey + 32, 190);
+		}
+	}
+#pragma endregion
 
 
 	// Checkpoint
@@ -568,11 +591,11 @@ void LSelect_Update(void)
 		CP_Settings_Fill(wall);
 		CP_Graphics_DrawRect(width / 2, height / 2, 1200, 600);
 		CP_Settings_Fill(black);
-		CP_Settings_TextSize(150);
+		CP_Settings_TextSize(100);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText("PAUSED", width / 2, 300);
 
-		CP_Settings_TextSize(100);
+		CP_Settings_TextSize(70);
 		// draw resume button
 		TextBoxCreate(500, 2 * height / 3, 350, 200, "RESUME", red);
 		int ResumeClick = IsAreaClicked(500, 2 * height / 3, 350, 200, mouseX, mouseY); //if mouse is over button

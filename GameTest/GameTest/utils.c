@@ -188,6 +188,9 @@ void Load_Images() {
 	goal_sprite			= CP_Image_Load("Assets/Plate.png");			// plate goal
 	goal_pointer		= CP_Image_Load("Assets/Arrow.png");			// goal pointer green arrow
 
+	// skull
+	skull				= CP_Image_Load("Assets/Skull.png");			// skull icon for death counter
+
 	// buffs stuff
 	buff_sprite			= CP_Image_Load("Assets/Buff_Icon.png");		// buff icons
 	buff_bg				= CP_Image_Load("Assets/Buff_Background.png");	// background for buff UI
@@ -209,12 +212,23 @@ void Free_Images() {
 	CP_Image_Free(&goal_sprite);
 	CP_Image_Free(&goal_pointer);
 
+	CP_Image_Free(&skull);
+
 	CP_Image_Free(&buff_sprite);
 	CP_Image_Free(&buff_bg);
 
 	CP_Image_Free(&fire_sprite);
 }
 
+void AudioPitch() {
+	if (levelstate == Paused || levelstate == Cleared) {
+		CP_Sound_SetGroupPitch(CP_SOUND_GROUP_0, 0.85);
+	}
+	else
+	{
+		CP_Sound_SetGroupPitch(CP_SOUND_GROUP_0, 1);
+	}
+}
 
 // LEVEL TRANSITION EFFECTS
 void Level_Transition(FunctionPtr level_init, FunctionPtr level_update, FunctionPtr level_exit) {
@@ -373,12 +387,13 @@ void RENDER_ALL() {
 
 	// DEATHS DRAWING
 	CP_Settings_Fill(black);
-	CP_Settings_TextSize(50);
+	CP_Settings_TextSize(30);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Image_Draw(skull, 50, 25, 50, 50, 255);
 	char deathcount[20] = { 0 };
 	if (deaths < 100) {
-		sprintf_s(deathcount, 20, "Deaths: %d", deaths);
-		CP_Font_DrawText(deathcount, 50, 50);
+		sprintf_s(deathcount, 20, ": %d", deaths);
+		CP_Font_DrawText(deathcount, 100, 50);
 	}
 	else {
 		CP_Font_DrawText("Bruh", 50, 50);

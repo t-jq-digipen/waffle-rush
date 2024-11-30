@@ -137,6 +137,7 @@
 		int highScore; // level high score
 		int levelNumber; // level number
 		int frameCounter;  //counts frames between last touch of wall while sliding
+		int walldir;		// direction for coyote time walljump
 		bool wasSliding;  //checks is player was sliding
 		int lastDir;  //saves last direction player was facing before wall jumping (for coyote time)
 		int coyotetime;
@@ -155,7 +156,7 @@
 		float tutorialDataY, level1DataY, level2DataY, level3DataY, level4DataY, level5DataY; //display high score and time for each level
 		float clear_timer;
 
-		CP_Image goal_pointer;
+		CP_Image goal_pointer, skull;
 
 		// Mouse position
 		float mouseX, mouseY;
@@ -539,6 +540,9 @@
 	// Sound files
 	CP_Sound music;
 	CP_Sound sfx;
+
+	// Reset pointers
+	FunctionPtr reset_init, reset_update, reset_exit;
 	CP_Sound wafflemachine;
 #pragma endregion VARIABLES
 /*---------------------------------------------------------------------------------------------------------*/
@@ -547,9 +551,7 @@
 /*=====================================================================================================================*/
 
 
-
-
-
+	void AudioPitch();
 // CAMERA FUNCTIONS
 /*---------------------------------------------------------------------------------------------------------*/
 #pragma region

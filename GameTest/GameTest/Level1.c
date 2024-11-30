@@ -73,8 +73,8 @@ void L1_Init(void)
 	// initialize powerups location
 	buffstate = 0b000;
 	Buff[jumpBuff].canPickup = 1; //if active,
-	Buff[jumpBuff].X = -500; //draw
-	Buff[jumpBuff].Y = -675; //draw
+	Buff[jumpBuff].X = 1400; //draw
+	Buff[jumpBuff].Y = 1325; //draw
 	Buff[jumpBuff].width = 20; //draw
 	Buff[jumpBuff].height = 20; //draw
 	Buff[jumpBuff].buffduration = 0; //seconds?
@@ -231,9 +231,14 @@ void L1_Init(void)
 	icon_se_x = 700.0f;
 	icon_se_y = 500.0f;
 
+	// Options
 	FILE* OptionsFile = fopen("Assets/Options.txt", "r");
 	fscanf_s(OptionsFile, "%f %f", &current_bgm_vol, &current_se_vol);
 	fclose(OptionsFile);
+
+	reset_init		= L1_Init;
+	reset_update	= L1_Update;
+	reset_exit		= L1_Exit;
 
 	// Corner drawing
 	CP_Settings_RectMode(CP_POSITION_CORNER);
@@ -262,8 +267,9 @@ void L1_Update(void)
 {
 	// background
 	CP_Graphics_ClearBackground(bg);
-
+	
 	// set volumes
+	AudioPitch();
 	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_0, current_bgm_vol / 100.0f);
 	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_1, current_se_vol / 100.0f);
 
@@ -356,7 +362,7 @@ void L1_Update(void)
 			}
 
 			// Jump
-			jump(&player, movestate, Buff[jumpBuff].state);
+			jump(&player, movestate, buffstate);
 
 			// change movestate
 				/*
@@ -519,11 +525,11 @@ void L1_Update(void)
 				CP_Settings_Fill(wall);
 				CP_Graphics_DrawRect(width / 2.0f, height / 2.0f, 1200, 700);
 				CP_Settings_Fill(black);
-				CP_Settings_TextSize(100);
+				CP_Settings_TextSize(70);
 				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 				CP_Font_DrawText("LEVEL COMPLETE", width / 2, 200);
 
-				CP_Settings_TextSize(50);
+				CP_Settings_TextSize(40);
 				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
 
 				// Score labels (on the left side)
@@ -555,7 +561,7 @@ void L1_Update(void)
 				sprintf_s(score, 20, "%d", IncrementScore(0, levelScore, &timeElapsed, dt));
 				CP_Font_DrawText(score, 1200, 600);
 
-				CP_Settings_TextSize(50);
+				CP_Settings_TextSize(30);
 				// draw next level button
 				TextBoxCreate(500, 720, 250, 100, "NEXT LEVEL", red);
 				int NextLevelClick = IsAreaClicked(500, 720, 250, 100, mouseX, mouseY); //if mouse is over button
